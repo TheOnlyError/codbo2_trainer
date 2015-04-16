@@ -5,13 +5,14 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <tchar.h>
 #include <objidl.h>
 #include <gdiplus.h>
 #include "FindProcess.h"
 
 using namespace Gdiplus;
+using namespace std;
 #pragma comment (lib,"Gdiplus.lib")
 
 // Forward declarations
@@ -65,6 +66,13 @@ void status(HDC hdc)
 
 	// Draw game status for intro
 	if (status() == false) {
+		static bool initialized;
+		HWND hWnd = NULL;
+		RECT rect{ 348, 432, 502, 412 };
+		if (!initialized) {
+			initialized = true;
+			InvalidateRect(hWnd, &rect, FALSE);
+		}
 		WCHAR status[] = L"Not Running";
 		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
 		PointF pointFStatus(350.0f, 355.0f);
@@ -72,8 +80,15 @@ void status(HDC hdc)
 		SolidBrush solidBrushStatus(Color(255, 255, 0, 0));
 
 		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
-	}
-	else if(status() == true) {
+	} 
+	else if (status() == true) {
+		static bool initialized;
+		HWND hWnd = NULL;
+		RECT rect{ 348, 432, 502, 412 };
+		if (!initialized) {
+			initialized = true;
+			InvalidateRect(hWnd, &rect, FALSE);
+		}
 		WCHAR status[] = L"Running";
 		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
 		PointF pointFStatus(370.0f, 355.0f);
@@ -81,7 +96,7 @@ void status(HDC hdc)
 		SolidBrush solidBrushStatus(Color(255, 0, 255, 0));
 
 		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
-		
+
 		if (hoverEnter == true) {
 			WCHAR enter[] = L"Enter trainer";
 			Font fontEnter(&fontFamily, 22, FontStyleRegular, UnitPoint);
@@ -219,15 +234,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
-		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
-			//ShowWindow(hWnd, SW_HIDE);
+		if (status() == true) {
+			RECT rect{ 348, 432, 502, 412 };
+			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+				hoverEnter = true;
+				SetCursor(wcex.hCursor);
+			}
+			else {
+				hoverEnter = false;
+			}
+			if (hoverEnter == true) {
+				static bool initialized;
+				if (!initialized) {
+					initialized = true;
+					InvalidateRect(hWnd, &rect, FALSE);
+				}
+			}
+			else {
+				static bool initialized;
+				if (!initialized) {
+					initialized = true;
+					InvalidateRect(hWnd, &rect, FALSE);
+				}
+			}
+		}
+		//ShowWindow(hWnd, SW_HIDE);
 			//ShowWindow(hWnd, SW_MINIMIZE);
 			//ShowWindow(hTrainer, SW_SHOW);
 			/*wchar_t d[20];
 			wsprintf(d, _T("(%i, %i"), iPosX, iPosY);
 			MessageBox(hWnd, d, _T("click"), MB_OK);
 			InvalidateRect(hWnd, 0, TRUE);*/
-		}
 		break;
 	}
 
@@ -235,19 +272,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
-		RECT rect { 348, 432, 502, 412 };
-		int i;
-		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
-			hoverEnter = true;
-			i = 1;
-			SetCursor(wcex.hCursor);
-		}
-		else {
-			hoverEnter = false;
-			i = 2;
-		}
-		if (i == 1 || i == 2) {
-			InvalidateRect(hWnd, &rect, FALSE);
+		if (status() == true) {
+			RECT rect{ 348, 432, 502, 412 };
+			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+				hoverEnter = true;
+				SetCursor(wcex.hCursor);
+			}
+			else {
+				hoverEnter = false;
+			}
+			static bool initialized;
+			if (hoverEnter == true) {
+				if (!initialized) {
+					initialized = true;
+					InvalidateRect(hWnd, &rect, FALSE);
+				}
+			} 
+			else {
+				if (initialized) {
+					initialized = false;
+					InvalidateRect(hWnd, &rect, FALSE);
+				}
+			}
 		}
 		break;
 	}

@@ -12,24 +12,15 @@ DWORD FindProcessId(const wstring& processName);
 
 bool status()
 {
-
-	bool isRunning = false;
-	
 	if (FindProcessId(L"notepad.exe"))
 	{
-		isRunning = true;
-	}
-
-	if (isRunning == false)
-	{
-		return false;
+		return true;
 	}
 	else {
-		return true;
+		return false;
 	}
 
 	return false;
-
 }
 
 DWORD FindProcessId(const wstring& processName)
