@@ -14,7 +14,7 @@ bool status()
 {
 
 	bool isRunning = false;
-
+	
 	if (FindProcessId(L"notepad.exe"))
 	{
 		isRunning = true;

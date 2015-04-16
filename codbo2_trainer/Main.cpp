@@ -26,6 +26,8 @@ const int INTRO_HEIGHT = 534;
 const int MAIN_WIDTH = 645;
 const int MAIN_HEIGHT = 534;
 
+bool hoverEnter = false;
+
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 void OnPaint(HDC hdc)
@@ -55,31 +57,50 @@ void OnPaint(HDC hdc)
 	graphics.FillRectangle(&solidBrush, 205 / 2, 0, 645, 35);
 }
 
-void state(HDC hdc)
+void status(HDC hdc)
 {
 	Graphics graphics(hdc);
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+	FontFamily fontFamily(L"Calibri");
 
 	// Draw game status for intro
 	if (status() == false) {
 		WCHAR status[] = L"Not Running";
-		FontFamily fontFamily(L"Calibri");
-		Font font(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
-		PointF pointF(350.0f, 355.0f);
-		SolidBrush solidBrush(Color(255, 255, 0, 0));
+		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+		PointF pointFStatus(350.0f, 355.0f);
+		// red
+		SolidBrush solidBrushStatus(Color(255, 255, 0, 0));
 
-		graphics.DrawString(status, -1, &font, pointF, NULL, &solidBrush);
+		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
+	}
+	else if(status() == false) {
+		WCHAR status[] = L"Running";
+		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+		PointF pointFStatus(370.0f, 355.0f);
+		// green
+		SolidBrush solidBrushStatus(Color(255, 0, 255, 0));
+
+		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
+	}
+
+	if (hoverEnter == true) {
+		WCHAR enter[] = L"Enter trainer";
+		Font fontEnter(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+		PointF pointFEnter(348.0f, 405.0f);
+		// #999
+		SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+
+		graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
 	}
 	else {
-		WCHAR status[] = L"Running";
-		FontFamily fontFamily(L"Calibri");
-		Font font(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
-		PointF pointF(370.0f, 355.0f);
-		SolidBrush solidBrush(Color(255, 0, 255, 0));
+		WCHAR enter[] = L"Enter trainer";
+		Font fontEnter(&fontFamily, 20, FontStyleBold, UnitPoint);
+		PointF pointFEnter(348.0f, 405.0f);
+		// #999
+		SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
 
-		graphics.DrawString(status, -1, &font, pointF, NULL, &solidBrush);
+		graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
 	}
-
 }
 
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -198,10 +219,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
-		if (iPosX > 340 && iPosX < 510 && iPosY > 350 && iPosY < 390) {
+		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
 			//ShowWindow(hWnd, SW_HIDE);
-			ShowWindow(hWnd, SW_MINIMIZE);
+			//ShowWindow(hWnd, SW_MINIMIZE);
 			//ShowWindow(hTrainer, SW_SHOW);
+			hoverEnter = true;
 		}
 		/*wchar_t d[20];
 		wsprintf(d, _T("(%i, %i"), iPosX, iPosY);
@@ -227,7 +249,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint(hWnd, &ps);
 
 		OnPaint(hdc);
-		state(hdc);
+		status(hdc);
 
 		/*TextOut(hdc,
 		5, 5,
