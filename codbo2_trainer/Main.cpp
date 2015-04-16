@@ -73,7 +73,7 @@ void status(HDC hdc)
 
 		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
 	}
-	else if(status() == false) {
+	else if(status() == true) {
 		WCHAR status[] = L"Running";
 		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
 		PointF pointFStatus(370.0f, 355.0f);
@@ -81,25 +81,25 @@ void status(HDC hdc)
 		SolidBrush solidBrushStatus(Color(255, 0, 255, 0));
 
 		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
-	}
+		
+		if (hoverEnter == true) {
+			WCHAR enter[] = L"Enter trainer";
+			Font fontEnter(&fontFamily, 22, FontStyleRegular, UnitPoint);
+			PointF pointFEnter(342.0f, 402.0f);
+			// #999
+			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
 
-	if (hoverEnter == true) {
-		WCHAR enter[] = L"Enter trainer";
-		Font fontEnter(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
-		PointF pointFEnter(348.0f, 405.0f);
-		// #999
-		SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+		}
+		else if (hoverEnter == false) {
+			WCHAR enter[] = L"Enter trainer";
+			Font fontEnter(&fontFamily, 20, FontStyleRegular, UnitPoint);
+			PointF pointFEnter(348.0f, 405.0f);
+			// #999
+			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
 
-		graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
-	}
-	else {
-		WCHAR enter[] = L"Enter trainer";
-		Font fontEnter(&fontFamily, 20, FontStyleBold, UnitPoint);
-		PointF pointFEnter(348.0f, 405.0f);
-		// #999
-		SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
-
-		graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+		}
 	}
 }
 
@@ -112,8 +112,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	// Initialize GDI+.
 	GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken;
-	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	WNDCLASSEX wcex;
@@ -210,8 +208,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
 	HDC hdc;
-	TCHAR test[] = _T("testtesttest");
 	HWND hTrainer;
+
+	WNDCLASSEX wcex;
+	wcex.hCursor = LoadCursor(NULL, IDC_HAND);
 
 	switch (message)
 	{
@@ -223,11 +223,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			//ShowWindow(hWnd, SW_HIDE);
 			//ShowWindow(hWnd, SW_MINIMIZE);
 			//ShowWindow(hTrainer, SW_SHOW);
-			hoverEnter = true;
+			/*wchar_t d[20];
+			wsprintf(d, _T("(%i, %i"), iPosX, iPosY);
+			MessageBox(hWnd, d, _T("click"), MB_OK);
+			InvalidateRect(hWnd, 0, TRUE);*/
 		}
-		/*wchar_t d[20];
-		wsprintf(d, _T("(%i, %i"), iPosX, iPosY);
-		MessageBox(hWnd, d, _T("click"), MB_OK);*/
 		break;
 	}
 
@@ -235,12 +235,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
-		if (iPosX > 340 && iPosX < 510 && iPosY > 350 && iPosY < 390) {
-			//graphics.status = 
+		RECT rect { 348, 432, 502, 412 };
+		int i;
+		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+			hoverEnter = true;
+			i = 1;
+			SetCursor(wcex.hCursor);
 		}
-		/*wchar_t d[20];
-		wsprintf(d, _T("(%i, %i"), iPosX, iPosY);
-		MessageBox(hWnd, d, _T("click"), MB_OK);*/
+		else {
+			hoverEnter = false;
+			i = 2;
+		}
+		if (i == 1 || i == 2) {
+			InvalidateRect(hWnd, &rect, FALSE);
+		}
 		break;
 	}
 
