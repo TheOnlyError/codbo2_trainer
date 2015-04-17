@@ -68,10 +68,11 @@ void status(HDC hdc)
 	if (status() == false) {
 		static bool initialized;
 		HWND hWnd = NULL;
-		RECT rect{ 348, 432, 502, 412 };
+		RECT rect{ 340, 432, 506, 412 };
 		if (!initialized) {
 			initialized = true;
 			InvalidateRect(hWnd, &rect, FALSE);
+			//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
 		}
 		WCHAR status[] = L"Not Running";
 		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
@@ -84,10 +85,11 @@ void status(HDC hdc)
 	else if (status() == true) {
 		static bool initialized;
 		HWND hWnd = NULL;
-		RECT rect{ 348, 432, 502, 412 };
+		RECT rect{ 340, 432, 506, 412 };
 		if (!initialized) {
 			initialized = true;
 			InvalidateRect(hWnd, &rect, FALSE);
+			//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
 		}
 		WCHAR status[] = L"Running";
 		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
@@ -98,16 +100,16 @@ void status(HDC hdc)
 		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
 
 		if (hoverEnter == true) {
-			WCHAR enter[] = L"Enter trainer";
+			WCHAR enter[] = L"Enter Trainer";
 			Font fontEnter(&fontFamily, 22, FontStyleRegular, UnitPoint);
-			PointF pointFEnter(342.0f, 402.0f);
+			PointF pointFEnter(340.0f, 402.0f);
 			// #999
 			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
 
 			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
 		}
 		else if (hoverEnter == false) {
-			WCHAR enter[] = L"Enter trainer";
+			WCHAR enter[] = L"Enter Trainer";
 			Font fontEnter(&fontFamily, 20, FontStyleRegular, UnitPoint);
 			PointF pointFEnter(348.0f, 405.0f);
 			// #999
@@ -235,7 +237,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
 		if (status() == true) {
-			RECT rect{ 348, 432, 502, 412 };
+			RECT rect{ 340, 432, 506, 412 };
 			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
 				hoverEnter = true;
 				SetCursor(wcex.hCursor);
@@ -248,6 +250,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (!initialized) {
 					initialized = true;
 					InvalidateRect(hWnd, &rect, FALSE);
+					//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
 				}
 			}
 			else {
@@ -255,6 +258,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (!initialized) {
 					initialized = true;
 					InvalidateRect(hWnd, &rect, FALSE);
+					//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
 				}
 			}
 		}
@@ -273,7 +277,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
 		if (status() == true) {
-			RECT rect{ 348, 432, 502, 412 };
+			RECT rect{ 340, 432, 506, 412 };
 			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
 				hoverEnter = true;
 				SetCursor(wcex.hCursor);
@@ -286,12 +290,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (!initialized) {
 					initialized = true;
 					InvalidateRect(hWnd, &rect, FALSE);
+					//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
 				}
 			} 
 			else {
 				if (initialized) {
 					initialized = false;
 					InvalidateRect(hWnd, &rect, FALSE);
+					//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
 				}
 			}
 		}
