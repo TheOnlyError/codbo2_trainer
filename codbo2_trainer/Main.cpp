@@ -27,12 +27,18 @@ const int INTRO_HEIGHT = 534;
 const int MAIN_WIDTH = 645;
 const int MAIN_HEIGHT = 534;
 
+RECT rcWindow;
+POINT pos;
+POINT curPos;
+
 bool hoverEnter = false;
 bool hoverMn = false;
 bool hoverCl = false;
 
+// #000
 int BtnBgInactive = 0;
-int BtnBgActive = 68;
+// #222
+int BtnBgActive = 34;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -48,19 +54,12 @@ void OnPaint(HDC hdc)
 	Rect introBgRect(0, 0, introBgWidth, introBgHeight);
 	graphics.DrawImage(&introBg, introBgRect, 0, 0, introBgWidth, introBgHeight, UnitPixel);
 
-	// Draw close button for intro
-	Image introCl(L"Close.png");
-	UINT introClWidth = introCl.GetWidth();
-	UINT introClHeight = introCl.GetHeight();
-	Rect introClRect(0, 0, introClWidth, introClHeight);
-	graphics.DrawImage(&introCl, introClRect, 0, 0, introClWidth, introClHeight, UnitPixel);
-
 	// Draw top bar for minimize and close button for intro
-	Pen blackPen(Color(255, 255, 0, 0), 3);
-	Rect rect(205 / 2, 0, 645, 25);
+	Pen blackPen(Color(0, 68, 68, 68), 3);
+	Rect rect(205 / 2, 0, 590, 25);
 	graphics.DrawRectangle(&blackPen, rect);
-	SolidBrush solidBrush(Color(255, 255, 0, 0));
-	graphics.FillRectangle(&solidBrush, 205 / 2, 0, 645, 25);
+	/*SolidBrush solidBrush(Color(255, 68, 68, 68));
+	graphics.FillRectangle(&solidBrush, 205 / 2, 0, 590, 25);*/
 }
 
 void status(HDC hdc)
@@ -157,6 +156,16 @@ void status(HDC hdc)
 		SolidBrush solidBrushCl(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive));
 		graphics.FillRectangle(&solidBrushCl, 722, 0, 25, 25);
 	}
+
+	Font fontBtn(&fontFamily, 13, FontStyleBold, UnitPoint);
+	SolidBrush solidBrushBtn(Color(255, 153, 153, 153));
+	WCHAR Mn[] = L"_";
+	WCHAR Cl[] = L"X";
+	PointF pointFMn(700.0f, -2.0f);
+	PointF pointFCl(728.0f, 3.0f);
+
+	graphics.DrawString(Mn, -1, &fontBtn, pointFMn, NULL, &solidBrushBtn);
+	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
 }
 
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -215,24 +224,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
 	SetLayeredWindowAttributes(hWnd, RGB(5, 0, 0), 0, LWA_COLORKEY);
 
-	HWND hTrainer = CreateWindow(
-		szWindowClass,
-		szTitle,
-		WS_VISIBLE | WS_CHILD,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		MAIN_WIDTH, MAIN_HEIGHT,
-		hWnd,
-		NULL,
-		hInstance,
-		NULL
-		);
-
-	SetWindowLong(hTrainer, GWL_STYLE, WS_VISIBLE);
-	SetWindowLong(hTrainer, GWL_EXSTYLE, GetWindowLong(hTrainer, GWL_EXSTYLE) | WS_EX_LAYERED);
-	SetLayeredWindowAttributes(hTrainer, RGB(0, 0, 0), 0, LWA_COLORKEY);
-
 	// If one of windows failes to be created
-	if (!hWnd || !hTrainer)
+	if (!hWnd)
 	{
 		MessageBox(NULL,
 			_T("Call to CreateWindow failed!"),
@@ -242,11 +235,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		return 1;
 	}
 
-	// Show intro windows
+	// Show window
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
-	ShowWindow(hTrainer, nCmdShow);
-	UpdateWindow(hTrainer);
 
 	// Main message loop
 	MSG msg;
@@ -264,7 +255,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
 	HDC hdc;
-	HWND hTrainer;
+	HWND hTrainer = NULL;
 
 	WNDCLASSEX wcex;
 	wcex.hCursor = LoadCursor(NULL, IDC_HAND);
@@ -275,87 +266,45 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
-		RECT rectMn{ 340, 432, 506, 412 };
-		RECT rectCl{ 340, 432, 506, 412 };
-		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
-			hoverMn = true;
-			SetCursor(wcex.hCursor);
+
+		// Pass cords when clicked on top bar
+		if (iPosX > 99 && iPosX < 693 && iPosY > -1 && iPosY < 26) {
+			SetCapture(hWnd);
+			GetWindowRect(hWnd, &rcWindow);
+			GetCursorPos(&pos);
+			ScreenToClient(hWnd, &pos);
 		}
-		else {
+
+		// Minimize window on click
+		if (iPosX > 693 && iPosX < 720 && iPosY > -1 && iPosY < 26) {
 			hoverMn = false;
+			ShowWindow(hWnd, SW_MINIMIZE);
 		}
-		if (hoverMn == true) {
-			static bool initialized;
-			if (!initialized) {
-				initialized = true;
-				InvalidateRect(hWnd, &rectMn, FALSE);
-				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
-			}
+
+		// Close window on click
+		if (iPosX > 721 && iPosX < 747 && iPosY > -1 && iPosY < 26) {
+			hoverMn = false;
+			DestroyWindow(hWnd);
 		}
-		else {
-			static bool initialized;
-			if (!initialized) {
-				initialized = true;
-				InvalidateRect(hWnd, &rectMn, FALSE);
-				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
-			}
-		}
+
+		// Enter trainer on click
 		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
-			hoverCl = true;
-			SetCursor(wcex.hCursor);
-		}
-		else {
-			hoverCl = false;
-		}
-		if (hoverCl == true) {
-			static bool initialized;
-			if (!initialized) {
-				initialized = true;
-				InvalidateRect(hWnd, &rectCl, FALSE);
-				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
-			}
-		}
-		else {
-			static bool initialized;
-			if (!initialized) {
-				initialized = true;
-				InvalidateRect(hWnd, &rectCl, FALSE);
-				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
-			}
-		}
-		if (status() == true) {
-			RECT rect{ 340, 432, 506, 412 };
-			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
-				hoverEnter = true;
-				SetCursor(wcex.hCursor);
-			}
-			else {
-				hoverEnter = false;
-			}
-			if (hoverEnter == true) {
-				static bool initialized;
-				if (!initialized) {
-					initialized = true;
-					InvalidateRect(hWnd, &rect, FALSE);
-					//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
-				}
-			}
-			else {
-				static bool initialized;
-				if (!initialized) {
-					initialized = true;
-					InvalidateRect(hWnd, &rect, FALSE);
-					//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
-				}
-			}
-		}
-		//ShowWindow(hWnd, SW_HIDE);
-			//ShowWindow(hWnd, SW_MINIMIZE);
+			hoverEnter = false;
+			ShowWindow(hWnd, SW_HIDE);
 			//ShowWindow(hTrainer, SW_SHOW);
-			/*wchar_t d[20];
-			wsprintf(d, _T("(%i, %i"), iPosX, iPosY);
-			MessageBox(hWnd, d, _T("click"), MB_OK);
-			InvalidateRect(hWnd, 0, TRUE);*/
+		}
+
+		/*wchar_t d[20];
+		wsprintf(d, _T("(%i, %i"), iPosX, iPosY);
+		MessageBox(hWnd, d, _T("click"), MB_OK);
+		InvalidateRect(hWnd, 0, TRUE);*/
+
+		break;
+	}
+
+	case WM_LBUTTONUP:
+	{
+		ReleaseCapture();
 		break;
 	}
 
@@ -363,54 +312,72 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
-		RECT rectMn{ 340, 432, 506, 412 };
-		RECT rectCl{ 340, 432, 506, 412 };
-		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+
+		RECT rectMn{ 694, 0, 721, 27 };
+		RECT rectCl{ 721, 0, 749, 27 };
+
+		// Move window
+		if (iPosX > 100 && iPosX < 693 && iPosY > -1 && iPosY < 26) {
+			GetCursorPos(&curPos);
+			if (wParam == MK_LBUTTON)
+			{
+				int x = curPos.x - pos.x;
+				int y = curPos.y - pos.y;
+				int width = rcWindow.right - rcWindow.left;
+				int height = rcWindow.bottom - rcWindow.top;
+				MoveWindow(hWnd, x, y, width, height, TRUE);
+			}
+		}
+
+		// Minimize button: hover
+		if (iPosX > 693 && iPosX < 720 && iPosY > -1 && iPosY < 26) {
 			hoverMn = true;
 			SetCursor(wcex.hCursor);
 		}
 		else {
 			hoverMn = false;
 		}
+		static bool initializedMn;
 		if (hoverMn == true) {
-			static bool initialized;
-			if (!initialized) {
-				initialized = true;
+			if (!initializedMn) {
+				initializedMn = true;
 				InvalidateRect(hWnd, &rectMn, FALSE);
 				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
 			}
 		}
 		else {
-			static bool initialized;
-			if (!initialized) {
-				initialized = true;
+			if (initializedMn) {
+				initializedMn = false;
 				InvalidateRect(hWnd, &rectMn, FALSE);
 				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
 			}
 		}
-		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+
+		// Close button: hover
+		if (iPosX > 721 && iPosX < 747 && iPosY > -1 && iPosY < 26) {
 			hoverCl = true;
 			SetCursor(wcex.hCursor);
 		}
 		else {
 			hoverCl = false;
 		}
+		static bool initializedCl;
 		if (hoverCl == true) {
-			static bool initialized;
-			if (!initialized) {
-				initialized = true;
+			if (!initializedCl) {
+				initializedCl = true;
 				InvalidateRect(hWnd, &rectCl, FALSE);
 				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
 			}
 		}
 		else {
-			static bool initialized;
-			if (!initialized) {
-				initialized = true;
+			if (initializedCl) {
+				initializedCl = false;
 				InvalidateRect(hWnd, &rectCl, FALSE);
 				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
 			}
 		}
+
+		// Enter trainer: hover
 		if (status() == true) {
 			RECT rect{ 340, 432, 506, 412 };
 			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
@@ -446,10 +413,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		OnPaint(hdc);
 		status(hdc);
 
-		/*TextOut(hdc,
-		5, 5,
-		test, _tcslen(test));*/
-
 		EndPaint(hWnd, &ps);
 		break;
 	}
@@ -465,6 +428,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return DefWindowProc(hWnd, message, wParam, lParam);
 		break;
 	}
+
 	}
 
 	return 0;

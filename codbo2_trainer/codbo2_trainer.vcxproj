@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Backup.cpp" />
     <ClCompile Include="FindProcess.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
