@@ -28,6 +28,11 @@ const int MAIN_WIDTH = 645;
 const int MAIN_HEIGHT = 534;
 
 bool hoverEnter = false;
+bool hoverMn = false;
+bool hoverCl = false;
+
+int BtnBgInactive = 0;
+int BtnBgActive = 68;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -50,12 +55,12 @@ void OnPaint(HDC hdc)
 	Rect introClRect(0, 0, introClWidth, introClHeight);
 	graphics.DrawImage(&introCl, introClRect, 0, 0, introClWidth, introClHeight, UnitPixel);
 
-	// Draw close and minimaze bar for intro
-	Pen blackPen(Color(255, 0, 0, 0), 3);
-	Rect rect(205 / 2, 0, 645, 35);
+	// Draw top bar for minimize and close button for intro
+	Pen blackPen(Color(255, 255, 0, 0), 3);
+	Rect rect(205 / 2, 0, 645, 25);
 	graphics.DrawRectangle(&blackPen, rect);
 	SolidBrush solidBrush(Color(255, 255, 0, 0));
-	graphics.FillRectangle(&solidBrush, 205 / 2, 0, 645, 35);
+	graphics.FillRectangle(&solidBrush, 205 / 2, 0, 645, 25);
 }
 
 void status(HDC hdc)
@@ -117,6 +122,40 @@ void status(HDC hdc)
 
 			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
 		}
+	}
+
+	if (hoverMn == true) {
+		// Draw minimize button for intro (active)
+		Pen penMn(Color(255, BtnBgActive, BtnBgActive, BtnBgActive), 3);
+		Rect rectMn(694, 0, 25, 25);
+		graphics.DrawRectangle(&penMn, rectMn);
+		SolidBrush solidBrushMn(Color(255, BtnBgActive, BtnBgActive, BtnBgActive));
+		graphics.FillRectangle(&solidBrushMn, 694, 0, 25, 25);
+	}
+	else if (hoverMn == false) {
+		// Draw minimize button for intro (inactive)
+		Pen penMn(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive), 3);
+		Rect rectMn(694, 0, 25, 25);
+		graphics.DrawRectangle(&penMn, rectMn);
+		SolidBrush solidBrushMn(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive));
+		graphics.FillRectangle(&solidBrushMn, 694, 0, 25, 25);
+	}
+
+	if (hoverCl == true) {
+		// Draw close button for intro (active)
+		Pen penCl(Color(255, BtnBgActive, BtnBgActive, BtnBgActive), 3);
+		Rect rectCl(722, 0, 25, 25);
+		graphics.DrawRectangle(&penCl, rectCl);
+		SolidBrush solidBrushCl(Color(255, BtnBgActive, BtnBgActive, BtnBgActive));
+		graphics.FillRectangle(&solidBrushCl, 722, 0, 25, 25);
+	}
+	else if (hoverCl == false) {
+		// Draw close button for intro (unactive)
+		Pen penCl(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive), 3);
+		Rect rectCl(722, 0, 25, 25);
+		graphics.DrawRectangle(&penCl, rectCl);
+		SolidBrush solidBrushCl(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive));
+		graphics.FillRectangle(&solidBrushCl, 722, 0, 25, 25);
 	}
 }
 
@@ -236,6 +275,54 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
+		RECT rectMn{ 340, 432, 506, 412 };
+		RECT rectCl{ 340, 432, 506, 412 };
+		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+			hoverMn = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverMn = false;
+		}
+		if (hoverMn == true) {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				InvalidateRect(hWnd, &rectMn, FALSE);
+				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
+			}
+		}
+		else {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				InvalidateRect(hWnd, &rectMn, FALSE);
+				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
+			}
+		}
+		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+			hoverCl = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverCl = false;
+		}
+		if (hoverCl == true) {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				InvalidateRect(hWnd, &rectCl, FALSE);
+				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
+			}
+		}
+		else {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				InvalidateRect(hWnd, &rectCl, FALSE);
+				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
+			}
+		}
 		if (status() == true) {
 			RECT rect{ 340, 432, 506, 412 };
 			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
@@ -276,6 +363,54 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
+		RECT rectMn{ 340, 432, 506, 412 };
+		RECT rectCl{ 340, 432, 506, 412 };
+		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+			hoverMn = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverMn = false;
+		}
+		if (hoverMn == true) {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				InvalidateRect(hWnd, &rectMn, FALSE);
+				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
+			}
+		}
+		else {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				InvalidateRect(hWnd, &rectMn, FALSE);
+				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
+			}
+		}
+		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+			hoverCl = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverCl = false;
+		}
+		if (hoverCl == true) {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				InvalidateRect(hWnd, &rectCl, FALSE);
+				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
+			}
+		}
+		else {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				InvalidateRect(hWnd, &rectCl, FALSE);
+				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
+			}
+		}
 		if (status() == true) {
 			RECT rect{ 340, 432, 506, 412 };
 			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
