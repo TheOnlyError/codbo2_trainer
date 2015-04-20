@@ -12,6 +12,8 @@ DWORD FindProcessId(const wstring& processName);
 
 bool status()
 {
+	RECT rect{ 340, 432, 506, 352 };
+
 	if (FindProcessId(L"notepad.exe"))
 	{
 		return true;

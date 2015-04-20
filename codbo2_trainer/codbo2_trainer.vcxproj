@@ -78,18 +78,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Backup.cpp" />
     <ClCompile Include="FindProcess.cpp" />
+    <ClCompile Include="Intro.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FindProcess.h" />
+    <ClInclude Include="Intro.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Intro_border.png" />
     <Image Include="Intro_original.png" />
     <Image Include="Intro_regular.png" />
     <Image Include="Logo.jpg" />
+    <Image Include="Main_border.png" />
+    <Image Include="Main_border_linegrey.png" />
+    <Image Include="Main_border_lineorange.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

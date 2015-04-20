@@ -11,21 +11,29 @@
 #include <gdiplus.h>
 #include "FindProcess.h"
 
+#include "Intro.h"
+
 using namespace Gdiplus;
 using namespace std;
 #pragma comment (lib,"Gdiplus.lib")
 
+/*---------------------------------------------------------------------------------------------*/
+
 // Forward declarations
-static TCHAR szWindowClass[] = _T("codbo_trainer");
+static TCHAR szWindowClassIntro[] = _T("codbo_trainer1");
+static TCHAR szWindowClassMain[] = _T("codbo_trainer2");
 static TCHAR szTitle[] = _T("Call of Duty Black Ops II Trainer");
 
-HINSTANCE hInst;
+HINSTANCE hInst = NULL;
+
+LRESULT CALLBACK WndProcIntro(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK WndProcMain(HWND, UINT, WPARAM, LPARAM);
 
 const int INTRO_WIDTH = 850;
 const int INTRO_HEIGHT = 534;
 
-const int MAIN_WIDTH = 645;
-const int MAIN_HEIGHT = 534;
+const int MAIN_WIDTH = 850;
+const int MAIN_HEIGHT = 700;
 
 RECT rcWindow;
 POINT pos;
@@ -40,12 +48,13 @@ int BtnBgInactive = 0;
 // #222
 int BtnBgActive = 34;
 
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+/*---------------------------------------------------------------------------------------------*/
 
-void OnPaint(HDC hdc)
+void onPaintIntro(HDC hdc)
 {
 	Graphics graphics(hdc);
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+	FontFamily fontFamily(L"Calibri");
 
 	// Draw background image for intro
 	Image introBg(L"Intro_border.png");
@@ -60,68 +69,6 @@ void OnPaint(HDC hdc)
 	graphics.DrawRectangle(&blackPen, rect);
 	/*SolidBrush solidBrush(Color(255, 68, 68, 68));
 	graphics.FillRectangle(&solidBrush, 205 / 2, 0, 590, 25);*/
-}
-
-void status(HDC hdc)
-{
-	Graphics graphics(hdc);
-	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-	FontFamily fontFamily(L"Calibri");
-
-	// Draw game status for intro
-	if (status() == false) {
-		static bool initialized;
-		HWND hWnd = NULL;
-		RECT rect{ 340, 432, 506, 412 };
-		if (!initialized) {
-			initialized = true;
-			InvalidateRect(hWnd, &rect, FALSE);
-			//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
-		}
-		WCHAR status[] = L"Not Running";
-		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
-		PointF pointFStatus(350.0f, 355.0f);
-		// red
-		SolidBrush solidBrushStatus(Color(255, 255, 0, 0));
-
-		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
-	} 
-	else if (status() == true) {
-		static bool initialized;
-		HWND hWnd = NULL;
-		RECT rect{ 340, 432, 506, 412 };
-		if (!initialized) {
-			initialized = true;
-			InvalidateRect(hWnd, &rect, FALSE);
-			//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
-		}
-		WCHAR status[] = L"Running";
-		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
-		PointF pointFStatus(370.0f, 355.0f);
-		// green
-		SolidBrush solidBrushStatus(Color(255, 0, 255, 0));
-
-		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
-
-		if (hoverEnter == true) {
-			WCHAR enter[] = L"Enter Trainer";
-			Font fontEnter(&fontFamily, 22, FontStyleRegular, UnitPoint);
-			PointF pointFEnter(340.0f, 402.0f);
-			// #999
-			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
-
-			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
-		}
-		else if (hoverEnter == false) {
-			WCHAR enter[] = L"Enter Trainer";
-			Font fontEnter(&fontFamily, 20, FontStyleRegular, UnitPoint);
-			PointF pointFEnter(348.0f, 405.0f);
-			// #999
-			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
-
-			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
-		}
-	}
 
 	if (hoverMn == true) {
 		// Draw minimize button for intro (active)
@@ -168,10 +115,145 @@ void status(HDC hdc)
 	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
 }
 
-int WINAPI WinMain(HINSTANCE hInstance,
-	HINSTANCE hPrevInstance,
-	LPSTR lpCmdLine,
-	int nCmdShow)
+/*---------------------------------------------------------------------------------------------*/
+
+void statusIntro(HDC hdc)
+{
+	Graphics graphics(hdc);
+	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+	FontFamily fontFamily(L"Calibri");
+
+	// Draw game status for intro
+	if (status() == false) {
+		static bool initialized;
+		HWND hWndIntro = NULL;
+		RECT rect{ 340, 432, 506, 412 };
+		if (!initialized) {
+			initialized = true;
+			InvalidateRect(hWndIntro, &rect, FALSE);
+			//RedrawWindow(hWndIntro, &rect, NULL, RDW_INVALIDATE);
+		}
+		WCHAR status[] = L"Not Running";
+		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+		PointF pointFStatus(350.0f, 355.0f);
+		// red
+		SolidBrush solidBrushStatus(Color(255, 255, 0, 0));
+
+		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
+	}
+	else if (status() == true) {
+		static bool initialized;
+		HWND hWndIntro = NULL;
+		RECT rect{ 340, 432, 506, 412 };
+		if (!initialized) {
+			initialized = true;
+			InvalidateRect(hWndIntro, &rect, FALSE);
+			//RedrawWindow(hWndIntro, &rect, NULL, RDW_INVALIDATE);
+		}
+		WCHAR status[] = L"Running";
+		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+		PointF pointFStatus(370.0f, 355.0f);
+		// green
+		SolidBrush solidBrushStatus(Color(255, 0, 255, 0));
+
+		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
+
+		if (hoverEnter == true) {
+			WCHAR enter[] = L"Enter Trainer";
+			Font fontEnter(&fontFamily, 22, FontStyleRegular, UnitPoint);
+			PointF pointFEnter(340.0f, 402.0f);
+			// #999
+			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+
+			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+		}
+		else if (hoverEnter == false) {
+			WCHAR enter[] = L"Enter Trainer";
+			Font fontEnter(&fontFamily, 20, FontStyleRegular, UnitPoint);
+			PointF pointFEnter(348.0f, 405.0f);
+			// #999
+			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+
+			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+		}
+	}
+}
+
+/*---------------------------------------------------------------------------------------------*/
+
+void onPaintMain(HDC hdc) {
+
+	Graphics graphics(hdc);
+	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+	FontFamily fontFamily(L"Calibri");
+
+	// Draw background image for main
+	Image introBg(L"Main_border_lineorange.png");
+	UINT introBgWidth = introBg.GetWidth();
+	UINT introBgHeight = introBg.GetHeight();
+	Rect introBgRect(0, 0, introBgWidth, introBgHeight);
+	graphics.DrawImage(&introBg, introBgRect, 0, 0, introBgWidth, introBgHeight, UnitPixel);
+
+	// Draw top bar for minimize and close button for intro
+	Pen blackPen(Color(0, 68, 68, 68), 3);
+	Rect rect(205 / 2, 0, 645, 25);
+	graphics.DrawRectangle(&blackPen, rect);
+	/*SolidBrush solidBrush(Color(255, 68, 68, 68));
+	graphics.FillRectangle(&solidBrush, 205 / 2, 0, 645, 25);*/
+
+	// Draw orange line for minimize and close button
+	Pen orangePen(Color(255, 237, 111, 0), 3);
+	Rect line(125, 24, 600, 1);
+	graphics.DrawRectangle(&orangePen, line);
+
+	if (hoverMn == true) {
+		// Draw minimize button for main (active)
+		Pen penMn(Color(255, 237, 111, 0), 3);
+		Rect rectMn(670, 28, 25, 25);
+		graphics.DrawRectangle(&penMn, rectMn);
+		SolidBrush solidBrushMn(Color(255, 237, 111, 0));
+		graphics.FillRectangle(&solidBrushMn, 670, 28, 25, 25);
+	}
+	else if (hoverMn == false) {
+		// Draw minimize button for main (inactive)
+		Pen penMn(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive), 3);
+		Rect rectMn(670, 30, 25, 25);
+		graphics.DrawRectangle(&penMn, rectMn);
+		SolidBrush solidBrushMn(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive));
+		graphics.FillRectangle(&solidBrushMn, 670, 30, 25, 25);
+	}
+
+	if (hoverCl == true) {
+		// Draw close button for main (active)
+		Pen penCl(Color(255, 237, 111, 0), 3);
+		Rect rectCl(698, 28, 25, 25);
+		graphics.DrawRectangle(&penCl, rectCl);
+		SolidBrush solidBrushCl(Color(255, 237, 111, 0));
+		graphics.FillRectangle(&solidBrushCl, 698, 28, 25, 25);
+	}
+	else if (hoverCl == false) {
+		// Draw close button for main (unactive)
+		Pen penCl(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive), 3);
+		Rect rectCl(698, 30, 25, 25);
+		graphics.DrawRectangle(&penCl, rectCl);
+		SolidBrush solidBrushCl(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive));
+		graphics.FillRectangle(&solidBrushCl, 698, 30, 25, 25);
+	}
+
+	Font fontBtn(&fontFamily, 13, FontStyleBold, UnitPoint);
+	SolidBrush solidBrushBtn(Color(255, 255, 255, 255));
+	WCHAR Mn[] = L"_";
+	WCHAR Cl[] = L"X";
+	PointF pointFMn(676.0f, 26.0f);
+	PointF pointFCl(704.0f, 31.0f);
+
+	graphics.DrawString(Mn, -1, &fontBtn, pointFMn, NULL, &solidBrushBtn);
+	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
+}
+
+/*---------------------------------------------------------------------------------------------*/
+
+int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 
 	// Initialize GDI+.
@@ -179,23 +261,37 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	ULONG_PTR gdiplusToken;
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
-	WNDCLASSEX wcex;
+	hInst = hInstance;
 
-	wcex.cbSize = sizeof(WNDCLASSEX);
-	wcex.style = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc = WndProc;
-	wcex.cbClsExtra = 0;
-	wcex.cbWndExtra = 0;
-	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
-	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground = CreateSolidBrush(RGB(5, 0, 0));
-	//wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcex.lpszMenuName = NULL;
-	wcex.lpszClassName = szWindowClass;
-	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+	WNDCLASSEX wcexIntro;
+	wcexIntro.cbSize = sizeof(WNDCLASSEX);
+	wcexIntro.style = CS_HREDRAW | CS_VREDRAW;
+	wcexIntro.lpfnWndProc = WndProcIntro;
+	wcexIntro.cbClsExtra = 0;
+	wcexIntro.cbWndExtra = 0;
+	wcexIntro.hInstance = hInst;
+	wcexIntro.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+	wcexIntro.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wcexIntro.hbrBackground = CreateSolidBrush(RGB(5, 0, 0));
+	wcexIntro.lpszMenuName = NULL;
+	wcexIntro.lpszClassName = szWindowClassIntro;
+	wcexIntro.hIconSm = NULL;
 
-	if (!RegisterClassEx(&wcex))
+	WNDCLASSEX wcexMain;
+	wcexMain.cbSize = sizeof(WNDCLASSEX);
+	wcexMain.style = CS_HREDRAW | CS_VREDRAW;
+	wcexMain.lpfnWndProc = WndProcMain;
+	wcexMain.cbClsExtra = 0;
+	wcexMain.cbWndExtra = 0;
+	wcexMain.hInstance = hInst;
+	wcexMain.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+	wcexMain.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wcexMain.hbrBackground = CreateSolidBrush(RGB(5, 0, 0));
+	wcexMain.lpszMenuName = NULL;
+	wcexMain.lpszClassName = szWindowClassMain;
+	wcexMain.hIconSm = NULL;
+
+	if (!RegisterClassEx(&wcexIntro) || !RegisterClassEx(&wcexMain))
 	{
 		MessageBox(NULL,
 			_T("Call to RegisterClassEx failed!"),
@@ -205,27 +301,40 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		return 1;
 	}
 
-	hInst = hInstance;
-
-	HWND hWnd = CreateWindow(
-		szWindowClass,
+	HWND hWndIntro = CreateWindow(
+		szWindowClassIntro,
 		szTitle,
 		WS_VISIBLE,
-		//WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		INTRO_WIDTH, INTRO_HEIGHT,
 		NULL,
 		NULL,
-		hInstance,
+		hInst,
 		NULL
 		);
 
-	SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE);
-	SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
-	SetLayeredWindowAttributes(hWnd, RGB(5, 0, 0), 0, LWA_COLORKEY);
+	SetWindowLong(hWndIntro, GWL_STYLE, WS_VISIBLE);
+	SetWindowLong(hWndIntro, GWL_EXSTYLE, GetWindowLong(hWndIntro, GWL_EXSTYLE) | WS_EX_LAYERED);
+	SetLayeredWindowAttributes(hWndIntro, RGB(5, 0, 0), 0, LWA_COLORKEY);
+
+	HWND hWndMain = CreateWindow(
+		szWindowClassMain,
+		szTitle,
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		MAIN_WIDTH, MAIN_HEIGHT,
+		NULL,
+		NULL,
+		hInst,
+		NULL
+		);
+
+	SetWindowLong(hWndMain, GWL_STYLE, WS_VISIBLE);
+	SetWindowLong(hWndMain, GWL_EXSTYLE, GetWindowLong(hWndMain, GWL_EXSTYLE) | WS_EX_LAYERED);
+	SetLayeredWindowAttributes(hWndMain, RGB(5, 0, 0), 0, LWA_COLORKEY);
 
 	// If one of windows failes to be created
-	if (!hWnd)
+	if (!hWndIntro || !hWndMain)
 	{
 		MessageBox(NULL,
 			_T("Call to CreateWindow failed!"),
@@ -236,12 +345,14 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	}
 
 	// Show window
-	ShowWindow(hWnd, nCmdShow);
-	UpdateWindow(hWnd);
+	ShowWindow(hWndIntro, nCmdShow);
+	UpdateWindow(hWndIntro);
+	ShowWindow(hWndMain, nCmdShow);
+	UpdateWindow(hWndMain);
 
 	// Main message loop
 	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0))
+	while (GetMessage(&msg, NULL , 0, 0))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -251,11 +362,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	return (int)msg.wParam;
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/*---------------------------------------------------------------------------------------------*/
+
+LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
 	HDC hdc;
-	HWND hTrainer = NULL;
 
 	WNDCLASSEX wcex;
 	wcex.hCursor = LoadCursor(NULL, IDC_HAND);
@@ -288,16 +400,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 
 		// Enter trainer on click
-		if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
-			hoverEnter = false;
-			ShowWindow(hWnd, SW_HIDE);
-			//ShowWindow(hTrainer, SW_SHOW);
+		if (status() == true) {
+			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
+				hoverEnter = false;
+				ShowWindow(hWnd, SW_HIDE);
+				//ShowWindow(hTrainer, SW_SHOW);
+			}
 		}
 
 		/*wchar_t d[20];
 		wsprintf(d, _T("(%i, %i"), iPosX, iPosY);
-		MessageBox(hWnd, d, _T("click"), MB_OK);
-		InvalidateRect(hWnd, 0, TRUE);*/
+		MessageBox(hWnd, d, _T("click"), MB_OK);*/
 
 		break;
 	}
@@ -313,7 +426,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
 
-		RECT rectMn{ 694, 0, 721, 27 };
+		RECT rectMn{ 693, 0, 721, 27 };
 		RECT rectCl{ 721, 0, 749, 27 };
 
 		// Move window
@@ -394,7 +507,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					InvalidateRect(hWnd, &rect, FALSE);
 					//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
 				}
-			} 
+			}
 			else {
 				if (initialized) {
 					initialized = false;
@@ -410,8 +523,171 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		hdc = BeginPaint(hWnd, &ps);
 
-		OnPaint(hdc);
-		status(hdc);
+		onPaintIntro(hdc);
+		statusIntro(hdc);
+
+		/*hWnd = GetFocus();
+		RECT rect{ 340, 432, 506, 352 };
+		if (hWnd = GetFocus()) {
+		//InvalidateRect(hWnd, &rect, FALSE);
+		RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
+		}
+		else {
+		RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
+		}*/
+
+		EndPaint(hWnd, &ps);
+		break;
+	}
+
+	case WM_DESTROY:
+	{
+		PostQuitMessage(0);
+		break;
+	}
+
+	default:
+	{
+		return DefWindowProc(hWnd, message, wParam, lParam);
+		break;
+	}
+
+	}
+
+	return 0;
+}
+
+/*---------------------------------------------------------------------------------------------*/
+
+LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	PAINTSTRUCT ps;
+	HDC hdc;
+
+	WNDCLASSEX wcex;
+	wcex.hCursor = LoadCursor(NULL, IDC_HAND);
+
+	switch (message)
+	{
+	case WM_LBUTTONDOWN:
+	{
+		int iPosX = GET_X_LPARAM(lParam);
+		int iPosY = GET_Y_LPARAM(lParam);
+
+		// Pass cords when clicked on top bar
+		if (iPosX > 99 && iPosX < 748 && iPosY > -1 && iPosY < 26) {
+			SetCapture(hWnd);
+			GetWindowRect(hWnd, &rcWindow);
+			GetCursorPos(&pos);
+			ScreenToClient(hWnd, &pos);
+		}
+
+		// Minimize window on click
+		if (iPosX > 669 && iPosX < 696 && iPosY > 27 && iPosY < 61) {
+			hoverMn = false;
+			ShowWindow(hWnd, SW_MINIMIZE);
+		}
+
+		// Close window on click
+		if (iPosX > 697 && iPosX < 724 && iPosY > 27 && iPosY < 61) {
+			hoverMn = false;
+			DestroyWindow(hWnd);
+		}
+		break;
+	}
+
+	case WM_LBUTTONUP:
+	{
+		ReleaseCapture();
+		break;
+	}
+
+	case WM_MOUSEMOVE:
+	{
+		int iPosX = GET_X_LPARAM(lParam);
+		int iPosY = GET_Y_LPARAM(lParam);
+
+		RECT rectMn{ 669, 27, 697, 62 };
+		RECT rectCl{ 697, 27, 725, 62 };
+
+		// Move window
+		if (iPosX > 100 && iPosX < 748 && iPosY > -1 && iPosY < 26) {
+			GetCursorPos(&curPos);
+			if (wParam == MK_LBUTTON)
+			{
+				int x = curPos.x - pos.x;
+				int y = curPos.y - pos.y;
+				int width = rcWindow.right - rcWindow.left;
+				int height = rcWindow.bottom - rcWindow.top;
+				MoveWindow(hWnd, x, y, width, height, TRUE);
+			}
+		}
+
+		// Minimize button: hover
+		if (iPosX > 669 && iPosX < 696 && iPosY > 27 && iPosY < 61) {
+			hoverMn = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverMn = false;
+		}
+		static bool initializedMn;
+		if (hoverMn == true) {
+			if (!initializedMn) {
+				initializedMn = true;
+				InvalidateRect(hWnd, &rectMn, FALSE);
+				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
+			}
+		}
+		else {
+			if (initializedMn) {
+				initializedMn = false;
+				InvalidateRect(hWnd, &rectMn, FALSE);
+				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
+			}
+		}
+
+		// Close button: hover
+		if (iPosX > 697 && iPosX < 724 && iPosY > 27 && iPosY < 61) {
+			hoverCl = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverCl = false;
+		}
+		static bool initializedCl;
+		if (hoverCl == true) {
+			if (!initializedCl) {
+				initializedCl = true;
+				InvalidateRect(hWnd, &rectCl, FALSE);
+				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
+			}
+		}
+		else {
+			if (initializedCl) {
+				initializedCl = false;
+				InvalidateRect(hWnd, &rectCl, FALSE);
+				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
+			}
+		}
+		break;
+	}
+
+	case WM_PAINT:
+	{
+		hdc = BeginPaint(hWnd, &ps);
+
+		onPaintMain(hdc);
+
+		/*hWndIntro = GetFocus();
+		RECT rect{ 340, 432, 506, 352 };
+		if (hWndIntro = GetFocus()) {
+		//InvalidateRect(hWndIntro, &rect, FALSE);
+		RedrawWindow(hWndIntro, &rect, NULL, RDW_INVALIDATE);
+		}
+		else {
+		RedrawWindow(hWndIntro, &rect, NULL, RDW_INVALIDATE);
+		}*/
 
 		EndPaint(hWnd, &ps);
 		break;
