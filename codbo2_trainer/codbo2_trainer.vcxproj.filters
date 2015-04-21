@@ -26,6 +26,9 @@
     <ClInclude Include="FindProcess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Res.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Intro_border.png">
@@ -49,5 +52,13 @@
     <Image Include="Main_border_lineorange.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Res.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

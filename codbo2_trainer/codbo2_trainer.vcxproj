@@ -83,8 +83,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FindProcess.h" />
+    <ClInclude Include="Res.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Icon.ico" />
     <Image Include="Intro_border.png" />
     <Image Include="Intro_original.png" />
     <Image Include="Intro_regular.png" />
@@ -92,6 +94,9 @@
     <Image Include="Main_border.png" />
     <Image Include="Main_border_linegrey.png" />
     <Image Include="Main_border_lineorange.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Res.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

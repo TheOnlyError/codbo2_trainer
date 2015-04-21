@@ -10,8 +10,7 @@
 #include <objidl.h>
 #include <gdiplus.h>
 #include "FindProcess.h"
-
-#include "Intro.h"
+#include "Res.h"
 
 using namespace Gdiplus;
 using namespace std;
@@ -283,7 +282,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wcexIntro.cbClsExtra = 0;
 	wcexIntro.cbWndExtra = 0;
 	wcexIntro.hInstance = hInst;
-	wcexIntro.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+	wcexIntro.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(Icon));
 	wcexIntro.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wcexIntro.hbrBackground = CreateSolidBrush(RGB(5, 0, 0));
 	wcexIntro.lpszMenuName = NULL;
@@ -297,7 +296,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wcexMain.cbClsExtra = 0;
 	wcexMain.cbWndExtra = 0;
 	wcexMain.hInstance = hInst;
-	wcexMain.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+	wcexMain.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(Icon));
 	wcexMain.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wcexMain.hbrBackground = CreateSolidBrush(RGB(5, 0, 0));
 	wcexMain.lpszMenuName = NULL;
