@@ -249,6 +249,19 @@ void onPaintMain(HDC hdc) {
 
 	graphics.DrawString(Mn, -1, &fontBtn, pointFMn, NULL, &solidBrushBtn);
 	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
+
+	Pen blackrPen(Color(0, 68, 68, 68), 3);
+	Rect rectr(125, 0, 600, 100);
+	graphics.DrawRectangle(&blackrPen, rectr);
+	SolidBrush solidrBrush(Color(255, 68, 68, 68));
+	graphics.FillRectangle(&solidrBrush, 130, 200, 590, 400);
+
+	SolidBrush solidrrBrush(Color(255, 255, 68, 68));
+	graphics.FillRectangle(&solidrrBrush, 130, 200, 225, 110);
+	graphics.FillRectangle(&solidrrBrush, 495, 200, 225, 110);
+	graphics.FillRectangle(&solidrrBrush, 130, 360, 225, 110);
+	graphics.FillRectangle(&solidrrBrush, 495, 360, 225, 110);
+	graphics.FillRectangle(&solidrrBrush, 305, 525, 225, 110);
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -320,7 +333,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	HWND hWndMain = CreateWindow(
 		szWindowClassMain,
 		szTitle,
-		WS_OVERLAPPEDWINDOW,
+		WS_VISIBLE,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		MAIN_WIDTH, MAIN_HEIGHT,
 		NULL,
@@ -403,8 +416,7 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		if (status() == true) {
 			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
 				hoverEnter = false;
-				ShowWindow(hWnd, SW_HIDE);
-				//ShowWindow(hTrainer, SW_SHOW);
+				//ShowWindow(hWnd, SW_HIDE);
 			}
 		}
 
