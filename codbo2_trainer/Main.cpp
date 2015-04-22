@@ -19,8 +19,8 @@ using namespace std;
 /*---------------------------------------------------------------------------------------------*/
 
 // Forward declarations
-static TCHAR szWindowClassIntro[] = _T("codbo_trainer1");
-static TCHAR szWindowClassMain[] = _T("codbo_trainer2");
+static TCHAR szWindowClassIntro[] = _T("codbo2_trainer_intro");
+static TCHAR szWindowClassMain[] = _T("codbo2_trainer_main");
 static TCHAR szTitle[] = _T("Call of Duty Black Ops II Trainer");
 
 HINSTANCE hInst = NULL;
@@ -361,6 +361,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	UpdateWindow(hWndIntro);
 	ShowWindow(hWndMain, nCmdShow);
 	UpdateWindow(hWndMain);
+	ShowWindow(hWndMain, SW_HIDE);
 
 	// Main message loop
 	MSG msg;
@@ -383,6 +384,8 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 
 	WNDCLASSEX wcex;
 	wcex.hCursor = LoadCursor(NULL, IDC_HAND);
+
+	HWND hWndMain = FindWindow(szWindowClassMain, NULL);
 
 	switch (message)
 	{
@@ -415,7 +418,8 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		if (status() == true) {
 			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
 				hoverEnter = false;
-				//ShowWindow(hWnd, SW_HIDE);
+				ShowWindow(hWnd, SW_HIDE);
+				ShowWindow(hWndMain, SW_SHOW);
 			}
 		}
 
