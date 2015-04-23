@@ -34,6 +34,7 @@ const int INTRO_HEIGHT = 534;
 const int MAIN_WIDTH = 850;
 const int MAIN_HEIGHT = 700;
 
+bool moveWindow = false;
 RECT rcWindow;
 POINT pos;
 POINT curPos;
@@ -201,8 +202,8 @@ void onPaintMain(HDC hdc) {
 	graphics.FillRectangle(&solidBrush, 205 / 2, 0, 645, 25);*/
 
 	// Draw orange line for minimize and close button
-	Pen orangePen(Color(255, 237, 111, 0), 3);
-	Rect line(125, 24, 600, 1);
+	Pen orangePen(Color(255, 237, 111, 0), 2);
+	Rect line(125, 25, 600, 1);
 	graphics.DrawRectangle(&orangePen, line);
 
 	if (hoverMn == true) {
@@ -249,18 +250,49 @@ void onPaintMain(HDC hdc) {
 	graphics.DrawString(Mn, -1, &fontBtn, pointFMn, NULL, &solidBrushBtn);
 	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
 
-	Pen blackrPen(Color(0, 68, 68, 68), 3);
-	Rect rectr(125, 0, 600, 100);
-	graphics.DrawRectangle(&blackrPen, rectr);
-	SolidBrush solidrBrush(Color(255, 68, 68, 68));
-	graphics.FillRectangle(&solidrBrush, 130, 200, 590, 400);
+	SolidBrush solidHckBrush(Color(255, 255, 68, 68));
+	graphics.FillRectangle(&solidHckBrush, 130, 200, 245, 110);
+	graphics.FillRectangle(&solidHckBrush, 475, 200, 245, 110);
+	graphics.FillRectangle(&solidHckBrush, 130, 360, 245, 110);
+	graphics.FillRectangle(&solidHckBrush, 475, 360, 245, 110);
+	graphics.FillRectangle(&solidHckBrush, 130, 520, 245, 110);
+	graphics.FillRectangle(&solidHckBrush, 475, 520, 245, 110);
 
-	SolidBrush solidrrBrush(Color(255, 255, 68, 68));
-	graphics.FillRectangle(&solidrrBrush, 130, 200, 225, 110);
-	graphics.FillRectangle(&solidrrBrush, 495, 200, 225, 110);
-	graphics.FillRectangle(&solidrrBrush, 130, 360, 225, 110);
-	graphics.FillRectangle(&solidrrBrush, 495, 360, 225, 110);
-	graphics.FillRectangle(&solidrrBrush, 305, 525, 225, 110);
+	Pen hckPen(Color(255, 68, 68, 68), 5);
+	Rect rectHck1(130, 200, 245, 110);
+	Rect rectHck2(475, 200, 245, 110);
+	Rect rectHck3(130, 360, 245, 110);
+	Rect rectHck4(475, 360, 245, 110);
+	Rect rectHck5(130, 520, 245, 110);
+	Rect rectHck6(475, 520, 245, 110);
+	graphics.DrawRectangle(&hckPen, rectHck1);
+	graphics.DrawRectangle(&hckPen, rectHck2);
+	graphics.DrawRectangle(&hckPen, rectHck3);
+	graphics.DrawRectangle(&hckPen, rectHck4);
+	graphics.DrawRectangle(&hckPen, rectHck5);
+	graphics.DrawRectangle(&hckPen, rectHck6);
+
+	Font fontHck(&fontFamily, 20, FontStyleRegular, UnitPoint);
+	SolidBrush solidBrushHck(Color(255, 255, 255, 255));
+	WCHAR UH[] = L"Godmode";
+	WCHAR US[] = L"Unlimited Points";
+	WCHAR UA[] = L"Unlimited Ammo";
+	WCHAR NC[] = L"No Clip";
+	WCHAR RF[] = L"Rapid Fire";
+	WCHAR OO[] = L"Other";
+	PointF pointFUH(190.0f, 240.0f);
+	PointF pointFUS(500.0f, 240.0f);
+	PointF pointFUA(150.0f, 400.0f);
+	PointF pointFNC(550.0f, 400.0f);
+	PointF pointFRF(190.0f, 560.0f);
+	PointF pointFOO(555.0f, 560.0f);
+
+	graphics.DrawString(UH, -1, &fontHck, pointFUH, NULL, &solidBrushHck);
+	graphics.DrawString(US, -1, &fontHck, pointFUS, NULL, &solidBrushHck);
+	graphics.DrawString(UA, -1, &fontHck, pointFUA, NULL, &solidBrushHck);
+	graphics.DrawString(NC, -1, &fontHck, pointFNC, NULL, &solidBrushHck);
+	graphics.DrawString(RF, -1, &fontHck, pointFRF, NULL, &solidBrushHck);
+	graphics.DrawString(OO, -1, &fontHck, pointFOO, NULL, &solidBrushHck);
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -396,10 +428,14 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 
 		// Pass cords when clicked on top bar
 		if (iPosX > 99 && iPosX < 693 && iPosY > -1 && iPosY < 26) {
+			moveWindow = true;
 			SetCapture(hWnd);
 			GetWindowRect(hWnd, &rcWindow);
 			GetCursorPos(&pos);
 			ScreenToClient(hWnd, &pos);
+		}
+		else {
+			moveWindow = false;
 		}
 
 		// Minimize window on click
@@ -445,7 +481,7 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		RECT rectCl{ 721, 0, 749, 27 };
 
 		// Move window
-		if (iPosX > 100 && iPosX < 693 && iPosY > -1 && iPosY < 26) {
+		if (moveWindow == true) {
 			GetCursorPos(&curPos);
 			if (wParam == MK_LBUTTON)
 			{
@@ -453,7 +489,7 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 				int y = curPos.y - pos.y;
 				int width = rcWindow.right - rcWindow.left;
 				int height = rcWindow.bottom - rcWindow.top;
-				MoveWindow(hWnd, x, y, width, height, TRUE);
+				MoveWindow(hWnd, x, y, width, height, FALSE);
 			}
 		}
 
@@ -591,10 +627,14 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 		// Pass cords when clicked on top bar
 		if (iPosX > 99 && iPosX < 748 && iPosY > -1 && iPosY < 26) {
+			moveWindow = true;
 			SetCapture(hWnd);
 			GetWindowRect(hWnd, &rcWindow);
 			GetCursorPos(&pos);
 			ScreenToClient(hWnd, &pos);
+		}
+		else {
+			moveWindow = false;
 		}
 
 		// Minimize window on click
@@ -626,7 +666,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		RECT rectCl{ 697, 27, 725, 62 };
 
 		// Move window
-		if (iPosX > 100 && iPosX < 748 && iPosY > -1 && iPosY < 26) {
+		if (moveWindow == true) {
 			GetCursorPos(&curPos);
 			if (wParam == MK_LBUTTON)
 			{
@@ -634,7 +674,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 				int y = curPos.y - pos.y;
 				int width = rcWindow.right - rcWindow.left;
 				int height = rcWindow.bottom - rcWindow.top;
-				MoveWindow(hWnd, x, y, width, height, TRUE);
+				MoveWindow(hWnd, x, y, width, height, FALSE);
 			}
 		}
 
