@@ -42,6 +42,14 @@ POINT curPos;
 bool hoverEnter = false;
 bool hoverMn = false;
 bool hoverCl = false;
+
+bool clickUH = false;
+bool clickUS = false;
+bool clickUA = false;
+bool clickNC = false;
+bool clickRF = false;
+bool clickOO = false;
+
 bool hoverUH = false;
 bool hoverUS = false;
 bool hoverUA = false;
@@ -256,8 +264,8 @@ void onPaintMain(HDC hdc) {
 	graphics.DrawString(Mn, -1, &fontBtn, pointFMn, NULL, &solidBrushBtn);
 	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
 
-	SolidBrush solidHckBrushActive(Color(255, 255, 68, 68));
-	SolidBrush solidHckBrushInactive(Color(255, 255, 68, 68));
+	SolidBrush solidHckBrushClickActive(Color(255, 255, 68, 68));
+	SolidBrush solidHckBrushClickInactive(Color(255, 0, 0, 0));
 	SolidBrush solidHckBrushHoverActive(Color(255, 0, 255, 0));
 	SolidBrush solidHckBrushHoverInactive(Color(255, 255, 0, 0));
 	Pen hckPen(Color(255, 68, 68, 68), 5);
@@ -267,6 +275,72 @@ void onPaintMain(HDC hdc) {
 	Rect rectHck4(475, 360, 245, 110);
 	Rect rectHck5(130, 520, 245, 110);
 	Rect rectHck6(475, 520, 245, 110);
+
+	if (clickUH == true) {
+		// Draw Godmode button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActive, 130, 200, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck1);
+	}
+	else if (clickUH == false) {
+		// Draw Godmode button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactive, 130, 200, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck1);
+	}
+
+	if (clickUS == true) {
+		// Draw Unlimited Points button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActive, 475, 200, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck2);
+	}
+	else if (clickUS == false) {
+		// Draw Unlimited Points button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactive, 475, 200, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck2);
+	}
+
+	if (clickUA == true) {
+		// Draw Unlimited Ammo button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActive, 130, 360, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck3);
+	}
+	else if (clickUA == false) {
+		// Draw Unlimited Ammo button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactive, 130, 360, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck3);
+	}
+
+	if (clickNC == true) {
+		// Draw No Clip button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActive, 475, 360, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck4);
+	}
+	else if (clickNC == false) {
+		// Draw No Clip button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactive, 475, 360, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck4);
+	}
+
+	if (clickRF == true) {
+		// Draw Rapid Fire button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActive, 130, 520, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck5);
+	}
+	else if (clickRF == false) {
+		// Draw Rapid Fire button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactive, 130, 520, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck5);
+	}
+
+	if (clickOO == true) {
+		// Draw Other button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActive, 475, 520, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck6);
+	}
+	else if (clickOO == false) {
+		// Draw Other button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactive, 475, 520, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck6);
+	}
 
 	if (hoverUH == true) {
 		// Draw Godmode button for main (active)
@@ -687,6 +761,13 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
 
+		RECT rectUH{ 130, 200, 375, 330 };
+		RECT rectUS{ 475, 200, 720, 330 };
+		RECT rectUA{ 130, 360, 375, 470 };
+		RECT rectNC{ 475, 360, 720, 470 };
+		RECT rectRF{ 130, 520, 375, 630 };
+		RECT rectOO{ 475, 520, 720, 630 };
+
 		// Pass cords when clicked on top bar
 		if (iPosX > 99 && iPosX < 748 && iPosY > -1 && iPosY < 26) {
 			moveWindow = true;
@@ -711,7 +792,132 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			DestroyWindow(hWnd);
 		}
 
-		// Write to memory on click per button
+		// Main buttons: click
+		if (iPosX > 127 && iPosX < 378 && iPosY > 197 && iPosY < 312) {
+			hoverUH = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverUH = false;
+		}
+		static bool initializedUH;
+		if (hoverUH == true) {
+			if (!initializedUH) {
+				initializedUH = true;
+				InvalidateRect(hWnd, &rectUH, FALSE);
+			}
+		}
+		else {
+			if (initializedUH) {
+				initializedUH = false;
+				InvalidateRect(hWnd, &rectUH, FALSE);
+			}
+		}
+
+		if (iPosX > 472 && iPosX < 723 && iPosY > 197 && iPosY < 312) {
+			hoverUS = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverUS = false;
+		}
+		static bool initializedUS;
+		if (hoverUS == true) {
+			if (!initializedUS) {
+				initializedUS = true;
+				InvalidateRect(hWnd, &rectUS, FALSE);
+			}
+		}
+		else {
+			if (initializedUS) {
+				initializedUS = false;
+				InvalidateRect(hWnd, &rectUS, FALSE);
+			}
+		}
+
+		if (iPosX > 127 && iPosX < 378 && iPosY > 357 && iPosY < 472) {
+			hoverUA = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverUA = false;
+		}
+		static bool initializedUA;
+		if (hoverUA == true) {
+			if (!initializedUA) {
+				initializedUA = true;
+				InvalidateRect(hWnd, &rectUA, FALSE);
+			}
+		}
+		else {
+			if (initializedUA) {
+				initializedUA = false;
+				InvalidateRect(hWnd, &rectUA, FALSE);
+			}
+		}
+
+		if (iPosX > 472 && iPosX < 723 && iPosY > 357 && iPosY < 472) {
+			hoverNC = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverNC = false;
+		}
+		static bool initializedNC;
+		if (hoverNC == true) {
+			if (!initializedNC) {
+				initializedNC = true;
+				InvalidateRect(hWnd, &rectNC, FALSE);
+			}
+		}
+		else {
+			if (initializedNC) {
+				initializedNC = false;
+				InvalidateRect(hWnd, &rectNC, FALSE);
+			}
+		}
+
+		if (iPosX > 127 && iPosX < 378 && iPosY > 517 && iPosY < 632) {
+			hoverRF = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverRF = false;
+		}
+		static bool initializedRF;
+		if (hoverRF == true) {
+			if (!initializedRF) {
+				initializedRF = true;
+				InvalidateRect(hWnd, &rectRF, FALSE);
+			}
+		}
+		else {
+			if (initializedRF) {
+				initializedRF = false;
+				InvalidateRect(hWnd, &rectRF, FALSE);
+			}
+		}
+
+		if (iPosX > 472 && iPosX < 723 && iPosY > 517 && iPosY < 632) {
+			hoverOO = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverOO = false;
+		}
+		static bool initializedOO;
+		if (hoverOO == true) {
+			if (!initializedOO) {
+				initializedOO = true;
+				InvalidateRect(hWnd, &rectOO, FALSE);
+			}
+		}
+		else {
+			if (initializedOO) {
+				initializedOO = false;
+				InvalidateRect(hWnd, &rectOO, FALSE);
+			}
+		}
 		break;
 	}
 
@@ -828,7 +1034,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		static bool initializedUS;
 		if (hoverUS == true) {
 			if (!initializedUS) {
-				initializedUH = true;
+				initializedUS = true;
 				InvalidateRect(hWnd, &rectUS, FALSE);
 			}
 		}
@@ -903,11 +1109,11 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		}
 
 		if (iPosX > 472 && iPosX < 723 && iPosY > 517 && iPosY < 632) {
-			hoverRF = true;
+			hoverOO = true;
 			SetCursor(wcex.hCursor);
 		}
 		else {
-			hoverRF = false;
+			hoverOO = false;
 		}
 		static bool initializedOO;
 		if (hoverOO == true) {
