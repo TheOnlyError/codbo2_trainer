@@ -40,27 +40,45 @@ POINT pos;
 POINT curPos;
 
 bool hoverEnter = false;
+
 bool hoverMn = false;
 bool hoverCl = false;
+
+// #000
+int BtnBgInactive = 0;
+// #222
+int BtnBgActive = 34;
 
 bool clickUH = false;
 bool clickUS = false;
 bool clickUA = false;
 bool clickNC = false;
 bool clickRF = false;
-bool clickOO = false;
+bool clickDA = false;
 
 bool hoverUH = false;
 bool hoverUS = false;
 bool hoverUA = false;
 bool hoverNC = false;
 bool hoverRF = false;
-bool hoverOO = false;
+bool hoverDA = false;
 
-// #000
-int BtnBgInactive = 0;
-// #222
-int BtnBgActive = 34;
+int valuePoints = 99999;
+int valueAmmo1 = 999;
+int valueAmmo2 = 4;
+
+HWND hWndBO2 = FindWindow(0, L"Untitled - Notepad");
+//HWND hWndBO2 = FindWindow(0, L"REDACTED: Nightly [2014-06-25] - #OFFLINE MODE#");
+DWORD procId;
+HANDLE hProcHck;
+
+DWORD pointerUH = 0x1D7AF68;
+DWORD pointerUS = 0x02302060;
+//DWORD pointerUS = 0x1D7AF68;
+DWORD pointerUA = 0x02302060;
+DWORD pointerNC = 0x02302060;
+DWORD pointerRF = 0x02302060;
+DWORD pointer00 = 0x02302060;
 
 /*---------------------------------------------------------------------------------------------*/
 
@@ -127,6 +145,10 @@ void onPaintIntro(HDC hdc)
 
 	graphics.DrawString(Mn, -1, &fontBtn, pointFMn, NULL, &solidBrushBtn);
 	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
+
+	//RECT rect{ 340, 360, 506, 480 };
+	//SolidBrush tesst(Color(255, 255, 0, 0));
+	//graphics.FillRectangle(&tesst, 340, 360, 166, 120);
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -141,7 +163,7 @@ void statusIntro(HDC hdc)
 	if (status() == false) {
 		static bool initialized;
 		HWND hWndIntro = NULL;
-		RECT rect{ 340, 432, 506, 412 };
+		RECT rect{ 340, 360, 506, 480 };
 		if (!initialized) {
 			initialized = true;
 			InvalidateRect(hWndIntro, &rect, FALSE);
@@ -158,7 +180,77 @@ void statusIntro(HDC hdc)
 	else if (status() == true) {
 		static bool initialized;
 		HWND hWndIntro = NULL;
-		RECT rect{ 340, 432, 506, 412 };
+		RECT rect{ 340, 360, 506, 480 };
+		if (!initialized) {
+			initialized = true;
+			InvalidateRect(hWndIntro, &rect, FALSE);
+			//RedrawWindow(hWndIntro, &rect, NULL, RDW_INVALIDATE);
+		}
+		WCHAR status[] = L"Running";
+		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+		PointF pointFStatus(370.0f, 355.0f);
+		// green
+		SolidBrush solidBrushStatus(Color(255, 0, 255, 0));
+
+		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
+
+		if (hoverEnter == true) {
+			WCHAR enter[] = L"Enter Trainer";
+			Font fontEnter(&fontFamily, 22, FontStyleRegular, UnitPoint);
+			PointF pointFEnter(340.0f, 402.0f);
+			// #999
+			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+
+			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+		}
+		else if (hoverEnter == false) {
+			WCHAR enter[] = L"Enter Trainer";
+			Font fontEnter(&fontFamily, 20, FontStyleRegular, UnitPoint);
+			PointF pointFEnter(348.0f, 405.0f);
+			// #999
+			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+
+			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+		}
+	}
+}
+
+void statusIntro1(HDC hdc)
+{
+	Graphics graphics(hdc);
+	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+	FontFamily fontFamily(L"Calibri");
+
+	// Draw game status for intro
+	if (status() == false) {
+		static bool initialized;
+		HWND hWndIntro = NULL;
+		RECT rect{ 340, 360, 506, 480 };
+		if (!initialized) {
+			initialized = true;
+			InvalidateRect(hWndIntro, &rect, FALSE);
+			//RedrawWindow(hWndIntro, &rect, NULL, RDW_INVALIDATE);
+		}
+		WCHAR status[] = L"Not Running";
+		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+		PointF pointFStatus(350.0f, 355.0f);
+		// red
+		SolidBrush solidBrushStatus(Color(255, 255, 0, 0));
+
+		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
+	}
+}
+
+void statusIntro2(HDC hdc)
+{
+	Graphics graphics(hdc);
+	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+	FontFamily fontFamily(L"Calibri");
+
+	if (status() == true) {
+		static bool initialized;
+		HWND hWndIntro = NULL;
+		RECT rect{ 340, 360, 506, 480 };
 		if (!initialized) {
 			initialized = true;
 			InvalidateRect(hWndIntro, &rect, FALSE);
@@ -195,8 +287,8 @@ void statusIntro(HDC hdc)
 
 /*---------------------------------------------------------------------------------------------*/
 
-void onPaintMain(HDC hdc) {
-
+void onPaintMain(HDC hdc)
+{
 	Graphics graphics(hdc);
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
 	FontFamily fontFamily(L"Calibri");
@@ -264,149 +356,19 @@ void onPaintMain(HDC hdc) {
 	graphics.DrawString(Mn, -1, &fontBtn, pointFMn, NULL, &solidBrushBtn);
 	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
 
-	SolidBrush solidHckBrushClickActive(Color(255, 255, 68, 68));
-	SolidBrush solidHckBrushClickInactive(Color(255, 0, 0, 0));
-	SolidBrush solidHckBrushHoverActive(Color(255, 0, 255, 0));
-	SolidBrush solidHckBrushHoverInactive(Color(255, 255, 0, 0));
-	Pen hckPen(Color(255, 68, 68, 68), 5);
-	Rect rectHck1(130, 200, 245, 110);
+	SolidBrush solidHckBrushClickActiveHoverActive(Color(255, 55, 255, 55));
+	SolidBrush solidHckBrushClickActiveHoverInactive(Color(255, 0, 255, 0));
+
+	SolidBrush solidHckBrushClickInactiveHoverActive(Color(255, 231, 76, 60));
+	SolidBrush solidHckBrushClickInactiveHoverInactive(Color(255, 255, 102, 86));
+
+	Pen hckPen(Color(255, 206, 51, 35), 5);
+	Rect rectHck1(132, 310, 240, 4);
 	Rect rectHck2(475, 200, 245, 110);
 	Rect rectHck3(130, 360, 245, 110);
 	Rect rectHck4(475, 360, 245, 110);
 	Rect rectHck5(130, 520, 245, 110);
 	Rect rectHck6(475, 520, 245, 110);
-
-	if (clickUH == true) {
-		// Draw Godmode button for main (active)
-		graphics.FillRectangle(&solidHckBrushClickActive, 130, 200, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck1);
-	}
-	else if (clickUH == false) {
-		// Draw Godmode button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushClickInactive, 130, 200, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck1);
-	}
-
-	if (clickUS == true) {
-		// Draw Unlimited Points button for main (active)
-		graphics.FillRectangle(&solidHckBrushClickActive, 475, 200, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck2);
-	}
-	else if (clickUS == false) {
-		// Draw Unlimited Points button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushClickInactive, 475, 200, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck2);
-	}
-
-	if (clickUA == true) {
-		// Draw Unlimited Ammo button for main (active)
-		graphics.FillRectangle(&solidHckBrushClickActive, 130, 360, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck3);
-	}
-	else if (clickUA == false) {
-		// Draw Unlimited Ammo button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushClickInactive, 130, 360, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck3);
-	}
-
-	if (clickNC == true) {
-		// Draw No Clip button for main (active)
-		graphics.FillRectangle(&solidHckBrushClickActive, 475, 360, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck4);
-	}
-	else if (clickNC == false) {
-		// Draw No Clip button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushClickInactive, 475, 360, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck4);
-	}
-
-	if (clickRF == true) {
-		// Draw Rapid Fire button for main (active)
-		graphics.FillRectangle(&solidHckBrushClickActive, 130, 520, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck5);
-	}
-	else if (clickRF == false) {
-		// Draw Rapid Fire button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushClickInactive, 130, 520, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck5);
-	}
-
-	if (clickOO == true) {
-		// Draw Other button for main (active)
-		graphics.FillRectangle(&solidHckBrushClickActive, 475, 520, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck6);
-	}
-	else if (clickOO == false) {
-		// Draw Other button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushClickInactive, 475, 520, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck6);
-	}
-
-	if (hoverUH == true) {
-		// Draw Godmode button for main (active)
-		graphics.FillRectangle(&solidHckBrushHoverActive, 130, 200, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck1);
-	}
-	else if(hoverUH == false) {
-		// Draw Godmode button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushHoverInactive, 130, 200, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck1);
-	}
-
-	if (hoverUS == true) {
-		// Draw Unlimited Points button for main (active)
-		graphics.FillRectangle(&solidHckBrushHoverActive, 475, 200, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck2);
-	}
-	else if (hoverUS == false) {
-		// Draw Unlimited Points button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushHoverInactive, 475, 200, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck2);
-	}
-
-	if (hoverUA == true) {
-		// Draw Unlimited Ammo button for main (active)
-		graphics.FillRectangle(&solidHckBrushHoverActive, 130, 360, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck3);
-	}
-	else if (hoverUA == false) {
-		// Draw Unlimited Ammo button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushHoverInactive, 130, 360, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck3);
-	}
-
-	if (hoverNC == true) {
-		// Draw No Clip button for main (active)
-		graphics.FillRectangle(&solidHckBrushHoverActive, 475, 360, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck4);
-	}
-	else if (hoverNC == false) {
-		// Draw No Clip button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushHoverInactive, 475, 360, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck4);
-	}
-
-	if (hoverRF == true) {
-		// Draw Rapid Fire button for main (active)
-		graphics.FillRectangle(&solidHckBrushHoverActive, 130, 520, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck5);
-	}
-	else if (hoverRF == false) {
-		// Draw Rapid Fire button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushHoverInactive, 130, 520, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck5);
-	}
-
-	if (hoverOO == true) {
-		// Draw Other button for main (active)
-		graphics.FillRectangle(&solidHckBrushHoverActive, 475, 520, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck6);
-	}
-	else if (hoverOO == false) {
-		// Draw Other button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushHoverInactive, 475, 520, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck6);
-	}
 
 	Font fontHck(&fontFamily, 20, FontStyleRegular, UnitPoint);
 	SolidBrush solidBrushHck(Color(255, 255, 255, 255));
@@ -415,27 +377,190 @@ void onPaintMain(HDC hdc) {
 	WCHAR UA[] = L"Unlimited Ammo";
 	WCHAR NC[] = L"No Clip";
 	WCHAR RF[] = L"Rapid Fire";
-	WCHAR OO[] = L"Other";
-	PointF pointFUH(190.0f, 240.0f);
+	WCHAR OO[] = L"Disable All";
+	PointF pointFUHActive(190.0f, 248.0f);
+	PointF pointFUHInactive(190.0f, 240.0f);
 	PointF pointFUS(500.0f, 240.0f);
 	PointF pointFUA(150.0f, 400.0f);
 	PointF pointFNC(550.0f, 400.0f);
 	PointF pointFRF(190.0f, 560.0f);
-	PointF pointFOO(555.0f, 560.0f);
+	PointF pointFDA(532.0f, 560.0f);
 
-	graphics.DrawString(UH, -1, &fontHck, pointFUH, NULL, &solidBrushHck);
 	graphics.DrawString(US, -1, &fontHck, pointFUS, NULL, &solidBrushHck);
 	graphics.DrawString(UA, -1, &fontHck, pointFUA, NULL, &solidBrushHck);
 	graphics.DrawString(NC, -1, &fontHck, pointFNC, NULL, &solidBrushHck);
 	graphics.DrawString(RF, -1, &fontHck, pointFRF, NULL, &solidBrushHck);
-	graphics.DrawString(OO, -1, &fontHck, pointFOO, NULL, &solidBrushHck);
+	graphics.DrawString(OO, -1, &fontHck, pointFDA, NULL, &solidBrushHck);
+
+	if (clickUH == true) {
+		// Draw Godmode button for main (active)
+		graphics.DrawRectangle(&hckPen, rectHck1);
+		graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 208, 245, 110);
+		if (hoverUH == true) {
+			graphics.DrawRectangle(&hckPen, rectHck1);
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 208, 245, 110);
+		}
+		else if (hoverUH == false) {
+			graphics.DrawRectangle(&hckPen, rectHck1);
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 130, 208, 245, 110);
+		}
+		graphics.DrawString(UH, -1, &fontHck, pointFUHActive, NULL, &solidBrushHck);
+	}
+	else if (clickUH == false) {
+		// Draw Godmode button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 200, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck1);
+		if (hoverUH == true) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 200, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck1);
+		}
+		else if (hoverUH == false) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverInactive, 130, 200, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck1);
+		}
+		graphics.DrawString(UH, -1, &fontHck, pointFUHInactive, NULL, &solidBrushHck);
+	}
+
+	if (clickUS == true) {
+		// Draw Unlimited Points button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 475, 200, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck2);
+		if (hoverUS == true) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 475, 200, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck2);
+		}
+		else if (hoverUS == false) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 475, 200, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck2);
+		}
+	}
+	else if (clickUS == false) {
+		// Draw Unlimited Points button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 475, 200, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck2);
+		if (hoverUS == true) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 475, 200, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck2);
+		}
+		else if (hoverUS == false) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverInactive, 475, 200, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck2);
+		}
+	}
+
+	if (clickUA == true) {
+		// Draw Unlimited Ammo button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 360, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck3);
+		if (hoverUA == true) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 360, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck3);
+		}
+		else if (hoverUA == false) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 130, 360, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck3);
+		}
+	}
+	else if (clickUA == false) {
+		// Draw Unlimited Ammo button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 360, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck3);
+		if (hoverUA == true) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 360, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck3);
+		}
+		else if (hoverUA == false) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverInactive, 130, 360, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck3);
+		}
+	}
+
+	if (clickNC == true) {
+		// Draw No Clip button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 475, 360, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck4);
+		if (hoverNC == true) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 475, 360, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck4);
+		}
+		else if (hoverNC == false) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 475, 360, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck4);
+		}
+	}
+	else if (clickNC == false) {
+		// Draw No Clip button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 475, 360, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck4);
+		if (hoverNC == true) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 475, 360, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck4);
+		}
+		else if (hoverNC == false) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverInactive, 475, 360, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck4);
+		}
+	}
+
+	if (clickRF == true) {
+		// Draw Rapid Fire button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 520, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck5);
+		if (hoverRF == true) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 520, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck5);
+		}
+		else if (hoverRF == false) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 130, 520, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck5);
+		}
+	}
+	else if (clickRF == false) {
+		// Draw Rapid Fire button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 520, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck5);
+		if (hoverRF == true) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 520, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck5);
+		}
+		else if (hoverRF == false) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverInactive, 130, 520, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck5);
+		}
+	}
+
+	if (clickDA == true) {
+		// Draw Other button for main (active)
+		graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 475, 520, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck6);
+		if (hoverDA == true) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 475, 520, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck6);
+		}
+		else if (hoverDA == false) {
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 475, 520, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck6);
+		}
+	}
+	else if (clickDA == false) {
+		// Draw Other button for main (inactive)
+		graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 475, 520, 245, 110);
+		graphics.DrawRectangle(&hckPen, rectHck6);
+		if (hoverDA == true) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 475, 520, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck6);
+		}
+		else if (hoverDA == false) {
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverInactive, 475, 520, 245, 110);
+			graphics.DrawRectangle(&hckPen, rectHck6);
+		}
+	}
 }
 
 /*---------------------------------------------------------------------------------------------*/
 
 int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-
 	// Initialize GDI+.
 	GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken;
@@ -540,7 +665,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	GdiplusShutdown(gdiplusToken);
-	return (int)msg.wParam;
+	return (int)msg.wParam;	
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -557,6 +682,7 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 
 	switch (message)
 	{
+		// WM_LBUTTONDOWN
 	case WM_LBUTTONDOWN:
 	{
 		int iPosX = GET_X_LPARAM(lParam);
@@ -602,12 +728,14 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		break;
 	}
 
+		// WM_LBUTTONUP
 	case WM_LBUTTONUP:
 	{
 		ReleaseCapture();
 		break;
 	}
 
+		// WM_MOUSEMOVE
 	case WM_MOUSEMOVE:
 	{
 		int iPosX = GET_X_LPARAM(lParam);
@@ -706,22 +834,17 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		break;
 	}
 
+		// WM_PAINT
 	case WM_PAINT:
 	{
 		hdc = BeginPaint(hWnd, &ps);
 
-		onPaintIntro(hdc);
-		statusIntro(hdc);
+		RECT rect{ 340, 360, 506, 480 };
+		InvalidateRect(hWnd, &rect, FALSE);
 
-		/*hWnd = GetFocus();
-		RECT rect{ 340, 432, 506, 352 };
-		if (hWnd = GetFocus()) {
-		//InvalidateRect(hWnd, &rect, FALSE);
-		RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
-		}
-		else {
-		RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE);
-		}*/
+		onPaintIntro(hdc);
+		statusIntro1(hdc);
+		statusIntro2(hdc);
 
 		EndPaint(hWnd, &ps);
 		break;
@@ -756,6 +879,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 	switch (message)
 	{
+	// WM_LBUTTONDOWN
 	case WM_LBUTTONDOWN:
 	{
 		int iPosX = GET_X_LPARAM(lParam);
@@ -792,16 +916,19 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			DestroyWindow(hWnd);
 		}
 
-		// Main buttons: click
-		if (iPosX > 127 && iPosX < 378 && iPosY > 197 && iPosY < 312) {
-			hoverUH = true;
+		// GODMODE
+		if (clickUH == true) {
+			if (iPosX > 127 && iPosX < 378 && iPosY > 197 && iPosY < 312) {
+				clickUH = false;
+				SetCursor(wcex.hCursor);
+			}
+		}
+		else if (iPosX > 127 && iPosX < 378 && iPosY > 197 && iPosY < 312) {
+			clickUH = true;
 			SetCursor(wcex.hCursor);
 		}
-		else {
-			hoverUH = false;
-		}
 		static bool initializedUH;
-		if (hoverUH == true) {
+		if (clickUH == true) {
 			if (!initializedUH) {
 				initializedUH = true;
 				InvalidateRect(hWnd, &rectUH, FALSE);
@@ -814,15 +941,19 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
-		if (iPosX > 472 && iPosX < 723 && iPosY > 197 && iPosY < 312) {
-			hoverUS = true;
+		// UNLIMITED POINTS
+		if (clickUS == true) {
+			if (iPosX > 472 && iPosX < 723 && iPosY > 197 && iPosY < 312) {
+				clickUS = false;
+				SetCursor(wcex.hCursor);
+			}
+		}
+		else if (iPosX > 472 && iPosX < 723 && iPosY > 197 && iPosY < 312) {
+			clickUS = true;
 			SetCursor(wcex.hCursor);
 		}
-		else {
-			hoverUS = false;
-		}
 		static bool initializedUS;
-		if (hoverUS == true) {
+		if (clickUS == true) {
 			if (!initializedUS) {
 				initializedUS = true;
 				InvalidateRect(hWnd, &rectUS, FALSE);
@@ -835,15 +966,19 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
-		if (iPosX > 127 && iPosX < 378 && iPosY > 357 && iPosY < 472) {
-			hoverUA = true;
+		// UNLIMITED AMMO
+		if (clickUA == true) {
+			if (iPosX > 127 && iPosX < 378 && iPosY > 357 && iPosY < 472) {
+				clickUA = false;
+				SetCursor(wcex.hCursor);
+			}
+		}
+		else if (iPosX > 127 && iPosX < 378 && iPosY > 357 && iPosY < 472) {
+			clickUA = true;
 			SetCursor(wcex.hCursor);
 		}
-		else {
-			hoverUA = false;
-		}
 		static bool initializedUA;
-		if (hoverUA == true) {
+		if (clickUA == true) {
 			if (!initializedUA) {
 				initializedUA = true;
 				InvalidateRect(hWnd, &rectUA, FALSE);
@@ -856,15 +991,19 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
-		if (iPosX > 472 && iPosX < 723 && iPosY > 357 && iPosY < 472) {
-			hoverNC = true;
+		// NO CAP
+		if (clickNC == true) {
+			if (iPosX > 472 && iPosX < 723 && iPosY > 357 && iPosY < 472) {
+				clickNC = false;
+				SetCursor(wcex.hCursor);
+			}
+		}
+		else if (iPosX > 472 && iPosX < 723 && iPosY > 357 && iPosY < 472) {
+			clickNC = true;
 			SetCursor(wcex.hCursor);
 		}
-		else {
-			hoverNC = false;
-		}
 		static bool initializedNC;
-		if (hoverNC == true) {
+		if (clickNC == true) {
 			if (!initializedNC) {
 				initializedNC = true;
 				InvalidateRect(hWnd, &rectNC, FALSE);
@@ -877,15 +1016,19 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
-		if (iPosX > 127 && iPosX < 378 && iPosY > 517 && iPosY < 632) {
-			hoverRF = true;
+		// RAPID FIRE
+		if (clickRF == true) {
+			if (iPosX > 127 && iPosX < 378 && iPosY > 517 && iPosY < 632) {
+				clickRF = false;
+				SetCursor(wcex.hCursor);
+			}
+		}
+		else if (iPosX > 127 && iPosX < 378 && iPosY > 517 && iPosY < 632) {
+			clickRF = true;
 			SetCursor(wcex.hCursor);
 		}
-		else {
-			hoverRF = false;
-		}
 		static bool initializedRF;
-		if (hoverRF == true) {
+		if (clickRF == true) {
 			if (!initializedRF) {
 				initializedRF = true;
 				InvalidateRect(hWnd, &rectRF, FALSE);
@@ -898,15 +1041,19 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
-		if (iPosX > 472 && iPosX < 723 && iPosY > 517 && iPosY < 632) {
-			hoverOO = true;
+		// OTHER
+		if (clickDA == true) {
+			if (iPosX > 472 && iPosX < 723 && iPosY > 517 && iPosY < 632) {
+				clickDA = false;
+				SetCursor(wcex.hCursor);
+			}
+		}
+		else if (iPosX > 472 && iPosX < 723 && iPosY > 517 && iPosY < 632) {
+			clickDA = true;
 			SetCursor(wcex.hCursor);
 		}
-		else {
-			hoverOO = false;
-		}
 		static bool initializedOO;
-		if (hoverOO == true) {
+		if (clickDA == true) {
 			if (!initializedOO) {
 				initializedOO = true;
 				InvalidateRect(hWnd, &rectOO, FALSE);
@@ -921,12 +1068,59 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		break;
 	}
 
+	// WM_LBUTTONUP
 	case WM_LBUTTONUP:
 	{
+		int iPosX = GET_X_LPARAM(lParam);
+		int iPosY = GET_Y_LPARAM(lParam);
+
+		RECT rectUH{ 130, 200, 375, 330 };
+		RECT rectUS{ 475, 200, 720, 330 };
+		RECT rectUA{ 130, 360, 375, 470 };
+		RECT rectNC{ 475, 360, 720, 470 };
+		RECT rectRF{ 130, 520, 375, 630 };
+		RECT rectOO{ 475, 520, 720, 630 };
+
 		ReleaseCapture();
+
+		// GODMODE
+		if (iPosX > 127 && iPosX < 378 && iPosY > 197 && iPosY < 312) {
+			SetCursor(wcex.hCursor);
+		}
+
+		if (clickUH == true) {
+			clickUH = false;
+		}
+
+		// UNLIMITED POINTS
+		if (iPosX > 472 && iPosX < 723 && iPosY > 197 && iPosY < 312) {
+			SetCursor(wcex.hCursor);
+		}
+
+		// UNLIMITED AMMO
+		if (iPosX > 127 && iPosX < 378 && iPosY > 357 && iPosY < 472) {
+			SetCursor(wcex.hCursor);
+		}
+
+		// NO CAP
+		if (iPosX > 472 && iPosX < 723 && iPosY > 357 && iPosY < 472) {
+			SetCursor(wcex.hCursor);
+		}
+
+		// RAPID FIRE
+		if (iPosX > 127 && iPosX < 378 && iPosY > 517 && iPosY < 632) {
+			SetCursor(wcex.hCursor);
+		}
+
+		// OTHER
+		if (iPosX > 472 && iPosX < 723 && iPosY > 517 && iPosY < 632) {
+			SetCursor(wcex.hCursor);
+		}
+
 		break;
 	}
 
+	// WM_MOUSEMOVE
 	case WM_MOUSEMOVE:
 	{
 		int iPosX = GET_X_LPARAM(lParam);
@@ -1002,7 +1196,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
-		// Main buttons: hover
+		// GODMODE
 		if (iPosX > 127 && iPosX < 378 && iPosY > 197 && iPosY < 312) {
 			hoverUH = true;
 			SetCursor(wcex.hCursor);
@@ -1024,6 +1218,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
+		// UNLIMITED POINTS
 		if (iPosX > 472 && iPosX < 723 && iPosY > 197 && iPosY < 312) {
 			hoverUS = true;
 			SetCursor(wcex.hCursor);
@@ -1045,6 +1240,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
+		// UNLIMITED AMMO
 		if (iPosX > 127 && iPosX < 378 && iPosY > 357 && iPosY < 472) {
 			hoverUA = true;
 			SetCursor(wcex.hCursor);
@@ -1066,6 +1262,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
+		// NO CAP
 		if (iPosX > 472 && iPosX < 723 && iPosY > 357 && iPosY < 472) {
 			hoverNC = true;
 			SetCursor(wcex.hCursor);
@@ -1087,6 +1284,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
+		// RAPID FIRE
 		if (iPosX > 127 && iPosX < 378 && iPosY > 517 && iPosY < 632) {
 			hoverRF = true;
 			SetCursor(wcex.hCursor);
@@ -1108,15 +1306,16 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 		}
 
+		// OTHER
 		if (iPosX > 472 && iPosX < 723 && iPosY > 517 && iPosY < 632) {
-			hoverOO = true;
+			hoverDA = true;
 			SetCursor(wcex.hCursor);
 		}
 		else {
-			hoverOO = false;
+			hoverDA = false;
 		}
 		static bool initializedOO;
-		if (hoverOO == true) {
+		if (hoverDA == true) {
 			if (!initializedOO) {
 				initializedOO = true;
 				InvalidateRect(hWnd, &rectOO, FALSE);
@@ -1131,20 +1330,62 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		break;
 	}
 
+	// WM_PAINT
 	case WM_PAINT:
 	{
 		hdc = BeginPaint(hWnd, &ps);
 
 		onPaintMain(hdc);
 
-		/*hWndIntro = GetFocus();
-		RECT rect{ 340, 432, 506, 352 };
-		if (hWndIntro = GetFocus()) {
-		//InvalidateRect(hWndIntro, &rect, FALSE);
-		RedrawWindow(hWndIntro, &rect, NULL, RDW_INVALIDATE);
-		}
-		else {
-		RedrawWindow(hWndIntro, &rect, NULL, RDW_INVALIDATE);
+		/*static bool initialized;
+		if (!initialized) {
+			initialized = true;
+			if (hWndBO2 == 0) {
+				MessageBox(NULL,
+					_T("Failed to find process!"),
+					_T("Call of Duty Black Ops II Trainer"),
+					NULL);
+
+				return 1;
+			}
+			else {
+				GetWindowThreadProcessId(hWndBO2, &procId);
+				hProcHck = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId);
+				if (!hProcHck) {
+					MessageBox(NULL,
+						_T("Failed to open process!"),
+						_T("Call of Duty Black Ops II Trainer"),
+						NULL);
+
+					return 1;
+				}
+				else {
+					DWORD pointed;
+					ReadProcessMemory(hProcHck, (LPCVOID)(pointerUS), &pointed, 4, NULL);
+					char test[10];
+					sprintf_s(test, "%d", pointed);
+					MessageBox(NULL,
+						(LPCWSTR)test,
+						_T("Call of Duty Black Ops II Trainer"),
+						NULL);
+
+					/*int t = WriteProcessMemory(hWndBO2, (LPVOID)pointerUS, &valuePoints, (DWORD)sizeof(valuePoints), NULL);
+					if (t > 0) {
+					MessageBox(NULL,
+					_T("Succes!"),
+					_T("Call of Duty Black Ops II Trainer"),
+					NULL);
+					}
+					else {
+					MessageBox(NULL,
+					_T("Not succes!"),
+					_T("Call of Duty Black Ops II Trainer"),
+					NULL);
+					}
+				}
+			}
+
+			CloseHandle(hProcHck);
 		}*/
 
 		EndPaint(hWnd, &ps);

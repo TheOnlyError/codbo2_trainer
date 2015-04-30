@@ -3,3 +3,4 @@
 
 // Function to check if program is running
 bool status();
+DWORD process();
