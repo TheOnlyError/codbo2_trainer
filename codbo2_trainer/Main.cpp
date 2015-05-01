@@ -63,6 +63,8 @@ bool hoverNC = false;
 bool hoverRF = false;
 bool hoverDA = false;
 
+bool down = false;
+
 int valuePoints = 99999;
 int valueAmmo1 = 999;
 int valueAmmo2 = 4;
@@ -356,19 +358,21 @@ void onPaintMain(HDC hdc)
 	graphics.DrawString(Mn, -1, &fontBtn, pointFMn, NULL, &solidBrushBtn);
 	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
 
-	SolidBrush solidHckBrushClickActiveHoverActive(Color(255, 55, 255, 55));
-	SolidBrush solidHckBrushClickActiveHoverInactive(Color(255, 0, 255, 0));
+	SolidBrush solidHckBrushClickActiveHoverActive(Color(255, 72, 230, 139));
+	SolidBrush solidHckBrushClickActiveHoverInactive(Color(255, 46, 204, 113));
 
-	SolidBrush solidHckBrushClickInactiveHoverActive(Color(255, 231, 76, 60));
-	SolidBrush solidHckBrushClickInactiveHoverInactive(Color(255, 255, 102, 86));
+	SolidBrush solidHckBrushClickInactiveHoverActive(Color(255, 255, 102, 86));
+	SolidBrush solidHckBrushClickInactiveHoverInactive(Color(255, 231, 76, 60));
 
-	Pen hckPen(Color(255, 206, 51, 35), 5);
-	Rect rectHck1(132, 310, 240, 4);
-	Rect rectHck2(475, 200, 245, 110);
-	Rect rectHck3(130, 360, 245, 110);
-	Rect rectHck4(475, 360, 245, 110);
-	Rect rectHck5(130, 520, 245, 110);
-	Rect rectHck6(475, 520, 245, 110);
+	// replace hckPen with hckPenInactive
+	Pen hckPenActive(Color(255, 21, 179, 88), 4);
+	Pen hckPen(Color(255, 206, 51, 35), 4);
+	Rect rectHck1(132, 312, 241, 3);
+	Rect rectHck2(477, 312, 241, 3);
+	Rect rectHck3(132, 472, 241, 3);
+	Rect rectHck4(477, 472, 241, 3);
+	Rect rectHck5(132, 632, 241, 3);
+	Rect rectHck6(477, 632, 241, 3);
 
 	Font fontHck(&fontFamily, 20, FontStyleRegular, UnitPoint);
 	SolidBrush solidBrushHck(Color(255, 255, 255, 255));
@@ -378,7 +382,7 @@ void onPaintMain(HDC hdc)
 	WCHAR NC[] = L"No Clip";
 	WCHAR RF[] = L"Rapid Fire";
 	WCHAR OO[] = L"Disable All";
-	PointF pointFUHActive(190.0f, 248.0f);
+	PointF pointFUHActive(190.0f, 244.0f);
 	PointF pointFUHInactive(190.0f, 240.0f);
 	PointF pointFUS(500.0f, 240.0f);
 	PointF pointFUA(150.0f, 400.0f);
@@ -392,31 +396,41 @@ void onPaintMain(HDC hdc)
 	graphics.DrawString(RF, -1, &fontHck, pointFRF, NULL, &solidBrushHck);
 	graphics.DrawString(OO, -1, &fontHck, pointFDA, NULL, &solidBrushHck);
 
-	if (clickUH == true) {
+	if (down == true) {
 		// Draw Godmode button for main (active)
-		graphics.DrawRectangle(&hckPen, rectHck1);
-		graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 208, 245, 110);
-		if (hoverUH == true) {
+		if (clickUH == true) {
 			graphics.DrawRectangle(&hckPen, rectHck1);
-			graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 208, 245, 110);
+			graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 206, 245, 110);
 		}
-		else if (hoverUH == false) {
-			graphics.DrawRectangle(&hckPen, rectHck1);
-			graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 130, 208, 245, 110);
+		else if (clickUH == false) {
+			graphics.DrawRectangle(&hckPenActive, rectHck1);
+			graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 206, 245, 110);
 		}
 		graphics.DrawString(UH, -1, &fontHck, pointFUHActive, NULL, &solidBrushHck);
+		down = false;
 	}
-	else if (clickUH == false) {
-		// Draw Godmode button for main (inactive)
-		graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 200, 245, 110);
-		graphics.DrawRectangle(&hckPen, rectHck1);
-		if (hoverUH == true) {
-			graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 200, 245, 110);
-			graphics.DrawRectangle(&hckPen, rectHck1);
+	else if (down == false) {
+		if (clickUH == true) {
+			// Draw Godmode button for main (active)
+			if (hoverUH == true) {
+				graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 200, 245, 110);
+				graphics.DrawRectangle(&hckPenActive, rectHck1);
+			}
+			else if (hoverUH == false) {
+				graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 130, 200, 245, 110);
+				graphics.DrawRectangle(&hckPenActive, rectHck1);
+			}
 		}
-		else if (hoverUH == false) {
-			graphics.FillRectangle(&solidHckBrushClickInactiveHoverInactive, 130, 200, 245, 110);
-			graphics.DrawRectangle(&hckPen, rectHck1);
+		else if (clickUH == false) {
+			// Draw Godmode button for main (inactive)
+			if (hoverUH == true) {
+				graphics.FillRectangle(&solidHckBrushClickInactiveHoverActive, 130, 200, 245, 110);
+				graphics.DrawRectangle(&hckPen, rectHck1);
+			}
+			else if (hoverUH == false) {
+				graphics.FillRectangle(&solidHckBrushClickInactiveHoverInactive, 130, 200, 245, 110);
+				graphics.DrawRectangle(&hckPen, rectHck1);
+			}
 		}
 		graphics.DrawString(UH, -1, &fontHck, pointFUHInactive, NULL, &solidBrushHck);
 	}
@@ -1086,10 +1100,12 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		// GODMODE
 		if (iPosX > 127 && iPosX < 378 && iPosY > 197 && iPosY < 312) {
 			SetCursor(wcex.hCursor);
-		}
-
-		if (clickUH == true) {
-			clickUH = false;
+			if (clickUH == true) {
+				down = true;
+			}
+			else {
+				down = false;
+			}
 		}
 
 		// UNLIMITED POINTS
