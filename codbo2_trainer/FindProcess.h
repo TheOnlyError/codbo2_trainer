@@ -3,4 +3,4 @@
 
 // Function to check if program is running
 bool status();
-DWORD process();
+//DWORD FindProcessId(const wstring& processName);

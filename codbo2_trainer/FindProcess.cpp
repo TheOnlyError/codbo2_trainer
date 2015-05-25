@@ -12,7 +12,7 @@ DWORD FindProcessId(const wstring& processName);
 
 bool status()
 {
-	if (FindProcessId(L"notepad.exe"))
+	if (FindProcessId(L"t6zm.exe"))
 	{
 		return true;
 	}
