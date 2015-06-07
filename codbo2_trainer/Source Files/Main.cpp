@@ -1,39 +1,46 @@
 // codbo2_trainer: Main.cpp
 // Gijs de Jong
 
-// Includes
+// Includes and namespaces
 #include <windows.h>
 #include <windowsx.h>
 #include <stdlib.h>
 #include <string>
 #include <tchar.h>
+#include <thread>
 #include <objidl.h>
 #include <gdiplus.h>
-#include "FindProcess.h"
-#include "Res.h"
 #include <tlhelp32.h>
+#include "../Header Files/Res.h"
+#include "../Header Files/FindProcess.h"
+#include "../Header Files/WriteProcess.h"
 
 using namespace Gdiplus;
 using namespace std;
 #pragma comment (lib,"Gdiplus.lib")
 
 /*---------------------------------------------------------------------------------------------*/
-
 // Forward declarations
+
 static TCHAR szWindowClassIntro[] = _T("codbo2_trainer_intro");
 static TCHAR szWindowClassMain[] = _T("codbo2_trainer_main");
+static TCHAR szWindowClassSettings[] = _T("codbo2_trainer_settings");
 static TCHAR szTitle[] = _T("Call of Duty Black Ops II Trainer");
 
 HINSTANCE hInst = NULL;
 
 LRESULT CALLBACK WndProcIntro(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK WndProcMain(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK WndProcSettings(HWND, UINT, WPARAM, LPARAM);
 
 const int INTRO_WIDTH = 850;
 const int INTRO_HEIGHT = 534;
 
 const int MAIN_WIDTH = 850;
 const int MAIN_HEIGHT = 700;
+
+const int SETTINGS_WIDTH = 425;
+const int SETTINGS_HEIGHT = 350;
 
 bool moveWindow = false;
 RECT rcWindow;
@@ -42,6 +49,7 @@ POINT curPos;
 
 bool hoverEnter = false;
 
+bool hoverSe = false;
 bool hoverMn = false;
 bool hoverCl = false;
 
@@ -71,23 +79,11 @@ bool hoverNC = false;
 bool hoverRF = false;
 bool hoverDA = false;
 
-DWORD oldValue;
-int valuePoints = 99999;
-int valueAmmo1 = 999;
-int valueAmmo2 = 4;
-
-//HWND hWndBO2 = FindWindow(0, L"Untitled - Notepad");
-HWND hWndBO2 = FindWindow(0, L"REDACTED: Nightly [2014-06-25] - #OFFLINE MODE#");
-DWORD procId;
-HANDLE hProcHck;
-
-DWORD pointerUH = 0x0217AF68;
-DWORD pointerUS = 0x02302060;
-DWORD pointerUA = 0x02302060;
-DWORD pointerNC = 0x02302060;
-DWORD pointerRF = 0x02302060;
+bool advanced = true;
+bool friendly = false;
 
 /*---------------------------------------------------------------------------------------------*/
+// Following function is used to paint everything on intro window
 
 void onPaintIntro(HDC hdc)
 {
@@ -96,7 +92,7 @@ void onPaintIntro(HDC hdc)
 	FontFamily fontFamily(L"Calibri");
 
 	// Draw background image for intro
-	Image introBg(L"Intro_border.png");
+	Image introBg(L"Resource Files/Intro_border.png");
 	UINT introBgWidth = introBg.GetWidth();
 	UINT introBgHeight = introBg.GetHeight();
 	Rect introBgRect(0, 0, introBgWidth, introBgHeight);
@@ -152,15 +148,12 @@ void onPaintIntro(HDC hdc)
 
 	graphics.DrawString(Mn, -1, &fontBtn, pointFMn, NULL, &solidBrushBtn);
 	graphics.DrawString(Cl, -1, &fontBtn, pointFCl, NULL, &solidBrushBtn);
-
-	//RECT rect{ 340, 360, 506, 480 };
-	//SolidBrush tesst(Color(255, 255, 0, 0));
-	//graphics.FillRectangle(&tesst, 340, 360, 166, 120);
 }
 
 /*---------------------------------------------------------------------------------------------*/
+// Following function is used to paint display status of process on intro window
 
-void statusIntro(HDC hdc)
+void statusIntro1(HDC hdc)
 {
 	Graphics graphics(hdc);
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
@@ -206,61 +199,94 @@ void statusIntro(HDC hdc)
 	}
 }
 
-void statusIntro1(HDC hdc)
-{
-	Graphics graphics(hdc);
-	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-	FontFamily fontFamily(L"Calibri");
-
-	// Draw game status for intro
-	if (status() == false) {
-		WCHAR status[] = L"Not Running";
-		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
-		PointF pointFStatus(350.0f, 355.0f);
-		// red
-		SolidBrush solidBrushStatus(Color(255, 255, 0, 0));
-
-		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
-	}
-}
-
 void statusIntro2(HDC hdc)
 {
 	Graphics graphics(hdc);
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
 	FontFamily fontFamily(L"Calibri");
 
-	if (status() == true) {
-		WCHAR status[] = L"Running";
-		Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
-		PointF pointFStatus(370.0f, 355.0f);
-		// green
-		SolidBrush solidBrushStatus(Color(255, 0, 255, 0));
+	WCHAR statusFalse[] = L"False Running";
+	Font fontStatusFalse(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+	PointF pointFStatusFalse(350.0f, 355.0f);
+	// red
+	SolidBrush solidBrushStatusFalse(Color(255, 255, 0, 0));
 
-		graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
+	// Draw game status for intro
+	while (status() == false) {
+		Sleep(100);
+		graphics.DrawString(statusFalse, -1, &fontStatusFalse, pointFStatusFalse, NULL, &solidBrushStatusFalse);
+	}
+}
 
-		if (hoverEnter == true) {
-			WCHAR enter[] = L"Enter Trainer";
-			Font fontEnter(&fontFamily, 22, FontStyleRegular, UnitPoint);
-			PointF pointFEnter(340.0f, 402.0f);
-			// #999
-			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+void statusIntro3(HDC hdc)
+{
+	Graphics graphics(hdc);
+	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+	FontFamily fontFamily(L"Calibri");
 
-			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+	WCHAR statusTrue[] = L"Running";
+	Font fontstatusTrue(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+	PointF pointFstatusTrue(370.0f, 355.0f);
+	// green
+	SolidBrush solidBrushstatusTrue(Color(255, 0, 255, 0));
+
+	// Draw game status for intro
+	while (status() == true) {
+		Sleep(100);
+		graphics.DrawString(statusTrue, -1, &fontstatusTrue, pointFstatusTrue, NULL, &solidBrushstatusTrue);
+	}
+}
+
+void statusIntro4(HDC hdc)
+{
+	Graphics graphics(hdc);
+	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+	FontFamily fontFamily(L"Calibri");
+
+	// Draw game status for intro
+	while (true) {
+		if (status() == false) {
+			WCHAR status[] = L"Not Running";
+			Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+			PointF pointFStatus(350.0f, 355.0f);
+			// red
+			SolidBrush solidBrushStatus(Color(255, 255, 0, 0));
+
+			graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
 		}
-		else if (hoverEnter == false) {
-			WCHAR enter[] = L"Enter Trainer";
-			Font fontEnter(&fontFamily, 20, FontStyleRegular, UnitPoint);
-			PointF pointFEnter(348.0f, 405.0f);
-			// #999
-			SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+		else if (status() == true) {
+			WCHAR status[] = L"Running";
+			Font fontStatus(&fontFamily, 20, FontStyleBoldItalic, UnitPoint);
+			PointF pointFStatus(370.0f, 355.0f);
+			// green
+			SolidBrush solidBrushStatus(Color(255, 0, 255, 0));
 
-			graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+			graphics.DrawString(status, -1, &fontStatus, pointFStatus, NULL, &solidBrushStatus);
+
+			if (hoverEnter == true) {
+				WCHAR enter[] = L"Enter Trainer";
+				Font fontEnter(&fontFamily, 22, FontStyleRegular, UnitPoint);
+				PointF pointFEnter(340.0f, 402.0f);
+				// #999
+				SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+
+				graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+			}
+			else if (hoverEnter == false) {
+				WCHAR enter[] = L"Enter Trainer";
+				Font fontEnter(&fontFamily, 20, FontStyleRegular, UnitPoint);
+				PointF pointFEnter(348.0f, 405.0f);
+				// #999
+				SolidBrush solidBrushEnter(Color(255, 153, 153, 153));
+
+				graphics.DrawString(enter, -1, &fontEnter, pointFEnter, NULL, &solidBrushEnter);
+			}
 		}
 	}
 }
 
 /*---------------------------------------------------------------------------------------------*/
+// Following function is used to paint everything on main window
 
 void onPaintMain(HDC hdc)
 {
@@ -269,23 +295,47 @@ void onPaintMain(HDC hdc)
 	FontFamily fontFamily(L"Calibri");
 
 	// Draw background image for main
-	Image introBg(L"Main_border_lineorange.png");
-	UINT introBgWidth = introBg.GetWidth();
-	UINT introBgHeight = introBg.GetHeight();
-	Rect introBgRect(0, 0, introBgWidth, introBgHeight);
-	graphics.DrawImage(&introBg, introBgRect, 0, 0, introBgWidth, introBgHeight, UnitPixel);
+	Image mainBg(L"Resource Files/Main_orange.png");
+	UINT mainBgWidth = mainBg.GetWidth();
+	UINT mainBgHeight = mainBg.GetHeight();
+	Rect mainBgRect(0, 0, mainBgWidth, mainBgHeight);
+	graphics.DrawImage(&mainBg, mainBgRect, 0, 0, mainBgWidth, mainBgHeight, UnitPixel);
 
-	// Draw top bar for minimize and close button for intro
+	// Draw top bar for settings, minimize and close button for intro
 	Pen blackPen(Color(0, 68, 68, 68), 3);
 	Rect rect(205 / 2, 0, 645, 25);
 	graphics.DrawRectangle(&blackPen, rect);
 	/*SolidBrush solidBrush(Color(255, 68, 68, 68));
 	graphics.FillRectangle(&solidBrush, 205 / 2, 0, 645, 25);*/
 
-	// Draw orange line for minimize and close button
+	// Draw orange line for settings, minimize and close button
 	Pen orangePen(Color(255, 237, 111, 0), 2);
 	Rect line(125, 25, 600, 1);
 	graphics.DrawRectangle(&orangePen, line);
+
+	if (hoverSe == true) {
+		// Draw settings button for main (active)
+		Pen penSe(Color(255, 237, 111, 0), 3);
+		Rect rectSe(125, 28, 25, 25);
+		graphics.DrawRectangle(&penSe, rectSe);
+		SolidBrush solidBrushSe(Color(255, 237, 111, 0));
+		graphics.FillRectangle(&solidBrushSe, 125, 28, 25, 25);
+	}
+	else if (hoverSe == false) {
+		// Draw settings button for main (unactive)
+		Pen penSe(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive), 3);
+		Rect rectSe(125, 30, 25, 25);
+		graphics.DrawRectangle(&penSe, rectSe);
+		SolidBrush solidBrushSe(Color(255, BtnBgInactive, BtnBgInactive, BtnBgInactive));
+		graphics.FillRectangle(&solidBrushSe, 125, 30, 25, 25);
+	}
+
+	// Draw settings icon image for main
+	Image introSe(L"Resource Files/Settings_icon.png");
+	UINT introSeWidth = introSe.GetWidth();
+	UINT introSeHeight = introSe.GetHeight();
+	Rect introSeRect(129, 31, introSeWidth, introSeHeight);
+	graphics.DrawImage(&introSe, introSeRect, 0, 0, introSeWidth, introSeHeight, UnitPixel);
 
 	if (hoverMn == true) {
 		// Draw minimize button for main (active)
@@ -386,7 +436,7 @@ void onPaintMain(HDC hdc)
 				graphics.FillRectangle(&solidHckBrushClickActiveHoverActive, 130, 200, 245, 110);
 			}
 			else if (hoverUH == false) {
-				graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 130, 200, 245, 110);			
+				graphics.FillRectangle(&solidHckBrushClickActiveHoverInactive, 130, 200, 245, 110);
 			}
 			graphics.DrawRectangle(&hckPenActive, rectHck1);
 		}
@@ -561,8 +611,26 @@ void onPaintMain(HDC hdc)
 }
 
 /*---------------------------------------------------------------------------------------------*/
+// Following function is used to paint everything on settings window
 
-int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+void onPaintSettings(HDC hdc)
+{
+	Graphics graphics(hdc);
+	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+	FontFamily fontFamily(L"Calibri");
+
+	// Draw background image for main
+	Image settingsBg(L"Resource Files/Settings_orange.png");
+	UINT settingsBgWidth = settingsBg.GetWidth();
+	UINT settingsBgHeight = settingsBg.GetHeight();
+	Rect settingsBgRect(0, 0, settingsBgWidth, settingsBgHeight);
+	graphics.DrawImage(&settingsBg, settingsBgRect, 0, 0, settingsBgWidth, settingsBgHeight, UnitPixel);
+}
+
+/*---------------------------------------------------------------------------------------------*/
+// Main function of trainer
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	// Initialize GDI+.
 	GdiplusStartupInput gdiplusStartupInput;
@@ -599,7 +667,21 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wcexMain.lpszClassName = szWindowClassMain;
 	wcexMain.hIconSm = NULL;
 
-	if (!RegisterClassEx(&wcexIntro) || !RegisterClassEx(&wcexMain))
+	WNDCLASSEX wcexSettings;
+	wcexSettings.cbSize = sizeof(WNDCLASSEX);
+	wcexSettings.style = CS_HREDRAW | CS_VREDRAW;
+	wcexSettings.lpfnWndProc = WndProcSettings;
+	wcexSettings.cbClsExtra = 0;
+	wcexSettings.cbWndExtra = 0;
+	wcexSettings.hInstance = hInst;
+	wcexSettings.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(Icon));
+	wcexSettings.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wcexSettings.hbrBackground = CreateSolidBrush(RGB(5, 0, 0));
+	wcexSettings.lpszMenuName = NULL;
+	wcexSettings.lpszClassName = szWindowClassSettings;
+	wcexSettings.hIconSm = NULL;
+
+	if (!RegisterClassEx(&wcexIntro) || !RegisterClassEx(&wcexMain) || !RegisterClassEx(&wcexSettings))
 	{
 		MessageBox(NULL,
 			_T("Call to RegisterClassEx failed!"),
@@ -641,8 +723,24 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetWindowLong(hWndMain, GWL_EXSTYLE, GetWindowLong(hWndMain, GWL_EXSTYLE) | WS_EX_LAYERED);
 	SetLayeredWindowAttributes(hWndMain, RGB(5, 0, 0), 0, LWA_COLORKEY);
 
-	// If one of windows failes to be created
-	if (!hWndIntro || !hWndMain)
+	HWND hWndSettings = CreateWindow(
+		szWindowClassSettings,
+		szTitle,
+		WS_VISIBLE,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		SETTINGS_WIDTH, SETTINGS_HEIGHT,
+		NULL,
+		NULL,
+		hInst,
+		NULL
+		);
+
+	SetWindowLong(hWndSettings, GWL_STYLE, WS_VISIBLE);
+	SetWindowLong(hWndSettings, GWL_EXSTYLE, GetWindowLong(hWndSettings, GWL_EXSTYLE) | WS_EX_LAYERED);
+	SetLayeredWindowAttributes(hWndSettings, RGB(5, 0, 0), 0, LWA_COLORKEY);
+
+	// If windows faile to be created
+	if (!hWndIntro && !hWndMain && !hWndSettings)
 	{
 		MessageBox(NULL,
 			_T("Call to CreateWindow failed!"),
@@ -658,20 +756,24 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ShowWindow(hWndMain, nCmdShow);
 	ShowWindow(hWndMain, SW_HIDE);
 	UpdateWindow(hWndMain);
+	ShowWindow(hWndSettings, nCmdShow);
+	ShowWindow(hWndSettings, SW_HIDE);
+	UpdateWindow(hWndSettings);
 
 	// Main message loop
 	MSG msg;
-	while (GetMessage(&msg, NULL , 0, 0))
+	while (GetMessage(&msg, NULL, 0, 0))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 
 	GdiplusShutdown(gdiplusToken);
-	return (int)msg.wParam;	
+	return (int)msg.wParam;
 }
 
 /*---------------------------------------------------------------------------------------------*/
+// Callback function to process input on intro window
 
 LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -682,18 +784,6 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	wcex.hCursor = LoadCursor(NULL, IDC_HAND);
 
 	HWND hWndMain = FindWindow(szWindowClassMain, NULL);
-
-	static int i = 0;
-	RECT rect{ 340, 360, 506, 480 };
-
-	/*if (status() == true && i == 1) {
-		i = 0;
-		InvalidateRect(hWnd, &rect, FALSE);
-	}
-	else if (status() == false && i == 0) {
-		i = 1;
-		InvalidateRect(hWnd, &rect, FALSE);
-	}*/
 
 	switch (message)
 	{
@@ -736,6 +826,7 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 			}
 		}
 
+		// Following line used to check mouse cords:
 		/*wchar_t d[20];
 		wsprintf(d, _T("(%i, %i"), iPosX, iPosY);
 		MessageBox(hWnd, d, _T("click"), MB_OK);*/
@@ -746,7 +837,19 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	// WM_LBUTTONUP
 	case WM_LBUTTONUP:
 	{
+		int iPosX = GET_X_LPARAM(lParam);
+		int iPosY = GET_Y_LPARAM(lParam);
+
 		ReleaseCapture();
+
+		// Display correct cursor for minimize and close button
+		if (iPosX > 693 && iPosX < 720 && iPosY > -1 && iPosY < 26) {
+			SetCursor(wcex.hCursor);
+		}
+		if (iPosX > 721 && iPosX < 747 && iPosY > -1 && iPosY < 26) {
+			SetCursor(wcex.hCursor);
+		}
+
 		break;
 	}
 
@@ -758,6 +861,7 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 
 		RECT rectMn{ 693, 0, 721, 27 };
 		RECT rectCl{ 721, 0, 749, 27 };
+		RECT rectEn{ 340, 432, 506, 412 };
 
 		// Move window
 		if (moveWindow == true) {
@@ -785,14 +889,12 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 			if (!initializedMn) {
 				initializedMn = true;
 				InvalidateRect(hWnd, &rectMn, FALSE);
-				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
 			}
 		}
 		else {
 			if (initializedMn) {
 				initializedMn = false;
 				InvalidateRect(hWnd, &rectMn, FALSE);
-				//RedrawWindow(hWnd, &rectMn, NULL, RDW_INVALIDATE);
 			}
 		}
 
@@ -809,20 +911,17 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 			if (!initializedCl) {
 				initializedCl = true;
 				InvalidateRect(hWnd, &rectCl, FALSE);
-				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
 			}
 		}
 		else {
 			if (initializedCl) {
 				initializedCl = false;
 				InvalidateRect(hWnd, &rectCl, FALSE);
-				//RedrawWindow(hWnd, &rectCl, NULL, RDW_INVALIDATE);
 			}
 		}
 
 		// Enter trainer: hover
 		if (status() == true) {
-			RECT rect{ 340, 432, 506, 412 };
 			if (iPosX > 348 && iPosX < 502 && iPosY > 412 && iPosY < 432) {
 				hoverEnter = true;
 				SetCursor(wcex.hCursor);
@@ -834,13 +933,13 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 			if (hoverEnter == true) {
 				if (!initialized) {
 					initialized = true;
-					InvalidateRect(hWnd, &rect, FALSE);
+					InvalidateRect(hWnd, &rectEn, FALSE);
 				}
 			}
 			else {
 				if (initialized) {
 					initialized = false;
-					InvalidateRect(hWnd, &rect, FALSE);
+					InvalidateRect(hWnd, &rectEn, FALSE);
 				}
 			}
 		}
@@ -853,39 +952,12 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		hdc = BeginPaint(hWnd, &ps);
 
 		onPaintIntro(hdc);
-
-		while (true) {
-			if (status() == false && i == 0) {
-				i = 1;
-				InvalidateRect(hWnd, &rect, FALSE);
-				statusIntro(hdc);
-			}
-			else if (status() == false && i == 1) {
-				InvalidateRect(hWnd, &rect, FALSE);
-				statusIntro(hdc);
-			}
-			else if (status() == true && i == 1) {
-				i = 0;
-				InvalidateRect(hWnd, &rect, FALSE);
-				statusIntro(hdc);
-			}
-			else if (status() == true && i == 0) {
-				InvalidateRect(hWnd, &rect, FALSE);
-				statusIntro(hdc);
-			}
-			break;
-		}
-
-		/*if (status() == false) {
-			string str = std::to_string(i);
-			MessageBoxA(NULL, str.c_str(), "false", MB_OK);
-		}
-		else {
-			string str = std::to_string(i);
-			MessageBoxA(NULL, str.c_str(), "true", MB_OK);
-		}*/
-
-		statusIntro(hdc);
+		
+		statusIntro1(hdc);
+		/*thread status1(statusIntro2, hdc);
+		status1.detach();
+		thread status2(statusIntro3, hdc);
+		status2.detach();*/
 
 		EndPaint(hWnd, &ps);
 		break;
@@ -909,6 +981,7 @@ LRESULT CALLBACK WndProcIntro(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 }
 
 /*---------------------------------------------------------------------------------------------*/
+// Callback function to process input on main window
 
 LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -917,6 +990,8 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 	WNDCLASSEX wcex;
 	wcex.hCursor = LoadCursor(NULL, IDC_HAND);
+
+	HWND hWndSettings = FindWindow(szWindowClassSettings, NULL);
 
 	switch (message)
 	{
@@ -945,6 +1020,17 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			moveWindow = false;
 		}
 
+		// Show settings window on click
+		if (iPosX > 124 && iPosX < 151 && iPosY > 27 && iPosY < 61) {
+			hoverSe = false;
+			//ShowWindow(hWndSettings, SW_SHOW);
+			SetCursor(wcex.hCursor);
+			MessageBox(NULL,
+				_T("Coming Soon!"),
+				_T("Call of Duty Black Ops II Trainer"),
+				MB_OK + MB_ICONINFORMATION);
+		}
+
 		// Minimize window on click
 		if (iPosX > 669 && iPosX < 696 && iPosY > 27 && iPosY < 61) {
 			hoverMn = false;
@@ -960,6 +1046,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		// GODMODE
 		if (clickUH == true) {
 			if (iPosX > 127 && iPosX < 378 && iPosY > 197 && iPosY < 312) {
+				disableUH = true;
 				clickUH = false;
 				downUH = true;
 				SetCursor(wcex.hCursor);
@@ -985,15 +1072,18 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		// UNLIMITED POINTS
 		if (clickUS == true) {
 			if (iPosX > 472 && iPosX < 723 && iPosY > 197 && iPosY < 312) {
+				disableUS = true;
 				clickUS = false;
 				downUS = true;
 				SetCursor(wcex.hCursor);
+				InvalidateRect(hWnd, &rectUS, FALSE);
 			}
 		}
 		else if (iPosX > 472 && iPosX < 723 && iPosY > 197 && iPosY < 312) {
 			clickUS = true;
 			downUS = true;
 			SetCursor(wcex.hCursor);
+			InvalidateRect(hWnd, &rectUS, FALSE);
 		}
 		static bool initializedUS;
 		if (clickUS == true) {
@@ -1003,13 +1093,14 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			if (!initializedUS) {
 				initializedUS = true;
 				InvalidateRect(hWnd, &rectUS, FALSE);
-				
+
 			}
 		}
 
 		// UNLIMITED AMMO
 		if (clickUA == true) {
 			if (iPosX > 127 && iPosX < 378 && iPosY > 357 && iPosY < 472) {
+				disableUA = true;
 				clickUA = false;
 				downUA = true;
 				SetCursor(wcex.hCursor);
@@ -1035,6 +1126,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		// NO CLIP
 		if (clickNC == true) {
 			if (iPosX > 472 && iPosX < 723 && iPosY > 357 && iPosY < 472) {
+				disableNC = true;
 				clickNC = false;
 				downNC = true;
 				SetCursor(wcex.hCursor);
@@ -1060,6 +1152,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		// RAPID FIRE
 		if (clickRF == true) {
 			if (iPosX > 127 && iPosX < 378 && iPosY > 517 && iPosY < 632) {
+				disableRF = true;
 				clickRF = false;
 				downRF = true;
 				SetCursor(wcex.hCursor);
@@ -1087,6 +1180,12 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 		// DISABLE ALL
 		if (iPosX > 472 && iPosX < 723 && iPosY > 517 && iPosY < 632) {
+			disableUH = true;
+			disableUS = true;
+			disableUA = true;
+			disableNC = true;
+			disableRF = true;
+
 			clickDA = true;
 			downDA = true;
 			SetCursor(wcex.hCursor);
@@ -1110,80 +1209,418 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		RECT rectDA{ 475, 520, 720, 640 };
 
 		ReleaseCapture();
-		
+
+		// Display correct cursor for settings, minimize and close button
+		if (iPosX > 124 && iPosX < 151 && iPosY > 27 && iPosY < 61) {
+			SetCursor(wcex.hCursor);
+		}
+		if (iPosX > 669 && iPosX < 696 && iPosY > 27 && iPosY < 61) {
+			SetCursor(wcex.hCursor);
+		}
+		if (iPosX > 697 && iPosX < 724 && iPosY > 27 && iPosY < 61) {
+			SetCursor(wcex.hCursor);
+		}
+
+		// UNLIMITED HEALTH
 		if (downUH == true) {
 			downUH = false;
 			InvalidateRect(hWnd, &rectUH, FALSE);
-		}
-		if (downUS == true) {
-			downUS = false;
-			InvalidateRect(hWnd, &rectUS, FALSE);
 
-			if (clickUS == true) {
-				ReadProcessMemory(hProcHck, (LPCVOID)(pointerRF), &oldValue, 4, NULL);
+			if (clickUH == true) {
+				ReadProcessMemory(hProcHck, (LPCVOID)(pointerUH), &oldValueUH, 4, NULL);
 				WCHAR msg[50];
-				swprintf_s(msg, L"%d was successfully changed to %d", oldValue, valuePoints);
+				swprintf_s(msg, L"%d was successfully changed to %d", oldValueUH, valueHealth);
 
-				int success = WriteProcessMemory(hProcHck, (LPVOID)pointerUS, &valuePoints, (DWORD)sizeof(valuePoints), NULL);
-				// For error testing
-				//int success = WriteProcessMemory(hWndBO2, (LPVOID)pointerUS, &valuePoints, (DWORD)sizeof(valuePoints), NULL);
+				thread tUnlimitedHealth(UnlimitedHealth);
+				tUnlimitedHealth.detach();
+
+				int success = WriteProcessMemory(hProcHck, (LPVOID)pointerUH, &valueHealth, (DWORD)sizeof(valueHealth), NULL);
+				// Following line used for error testing:
+				// int success = WriteProcessMemory(hWndBO2, (LPVOID)pointerUH, &valueHealth, (DWORD)sizeof(valueHealth), NULL);
 				if (success > 0) {
-					clickUS = true;
-					InvalidateRect(hWnd, &rectUS, FALSE);
-					MessageBox(NULL,
-						msg,
-						_T("Call of Duty Black Ops II Trainer"),
-						MB_OK + MB_ICONINFORMATION);
+					clickUH = true;
+					InvalidateRect(hWnd, &rectUH, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
 				}
 				else {
-					clickUS = false;
-					InvalidateRect(hWnd, &rectUS, FALSE);
-					MessageBox(NULL,
-						_T("Unlimited Points hack failed!"),
-						_T("Call of Duty Black Ops II Trainer"),
-						MB_OK + MB_ICONERROR);
+					clickUH = false;
+					InvalidateRect(hWnd, &rectUH, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("Unlimited Health hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
 				}
 
 				CloseHandle(hProcHck);
 			}
 			else {
 				WCHAR msg[50];
-				swprintf_s(msg, L"%d was successfully changed back to %d", valuePoints, oldValue);
+				swprintf_s(msg, L"%d was successfully changed back to %d", valuePoints, oldValueUH);
 
-				int success = WriteProcessMemory(hProcHck, (LPVOID)pointerUS, &oldValue, (DWORD)sizeof(oldValue), NULL);
+				int success = WriteProcessMemory(hProcHck, (LPVOID)pointerUH, &oldValueUH, (DWORD)sizeof(oldValueUH), NULL);
+				// Following line used for error testing:
+				// int success = WriteProcessMemory(hWndBO2, (LPVOID)pointerUH, &oldValueUH, (DWORD)sizeof(oldValueUH), NULL);
 				if (success > 0) {
-					clickUS = true;
-					InvalidateRect(hWnd, &rectUS, FALSE);
-					MessageBox(NULL,
-						msg,
-						_T("Call of Duty Black Ops II Trainer"),
-						MB_OK + MB_ICONINFORMATION);
+					clickUH = false;
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
 				}
 				else {
-					clickUS = false;
-					InvalidateRect(hWnd, &rectUS, FALSE);
-					MessageBox(NULL,
-						_T("Unlimited Points hack failed!"),
-						_T("Call of Duty Black Ops II Trainer"),
-						MB_OK + MB_ICONERROR);
+					clickUH = true;
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("Unlimited Health hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
 				}
 
 				CloseHandle(hProcHck);
 			}
 		}
+
+		// UNLIMITED POINTS
+		if (downUS == true) {
+			downUS = false;
+			InvalidateRect(hWnd, &rectUS, FALSE);
+
+			if (clickUS == true) {
+				ReadProcessMemory(hProcHck, (LPCVOID)(pointerUS), &oldValueUS, 4, NULL);
+				WCHAR msg[50];
+				swprintf_s(msg, L"%d was successfully changed to %d", oldValueUS, valuePoints);
+
+				thread tUnlimitedPoints(UnlimitedPoints);
+				tUnlimitedPoints.detach();
+
+				int success = WriteProcessMemory(hProcHck, (LPVOID)pointerUS, &valuePoints, (DWORD)sizeof(valuePoints), NULL);
+
+				// Following line used for error testing:
+				// int success = WriteProcessMemory(hWndBO2, (LPVOID)pointerUS, &valuePoints, (DWORD)sizeof(valuePoints), NULL);
+				if (success > 0) {
+					clickUS = true;
+					InvalidateRect(hWnd, &rectUS, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
+				}
+				else {
+					clickUS = false;
+					InvalidateRect(hWnd, &rectUS, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("Unlimited Points hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
+				}
+
+				CloseHandle(hProcHck);
+			}
+			else {
+				WCHAR msg[50];
+				swprintf_s(msg, L"%d was successfully changed back to %d", valuePoints, oldValueUS);
+
+				int success = WriteProcessMemory(hProcHck, (LPVOID)pointerUS, &oldValueUS, (DWORD)sizeof(oldValueUS), NULL);
+				// Following line used for error testing:
+				// int success = WriteProcessMemory(hWndBO2, (LPVOID)pointerUS, &oldValueUS, (DWORD)sizeof(oldValueUS), NULL);
+				if (success > 0) {
+					clickUS = false;
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
+				}
+				else {
+					clickUS = true;
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("Unlimited Points hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
+				}
+
+				CloseHandle(hProcHck);
+			}
+		}
+
+		// UNLIMITED AMMO
 		if (downUA == true) {
 			downUA = false;
 			InvalidateRect(hWnd, &rectUA, FALSE);
+
+			if (clickUA == true) {
+				ReadProcessMemory(hProcHck, (LPCVOID)(pointerUA1), &oldValueUA1, 4, NULL);
+				ReadProcessMemory(hProcHck, (LPCVOID)(pointerUA2), &oldValueUA2, 4, NULL);
+				ReadProcessMemory(hProcHck, (LPCVOID)(pointerUA3), &oldValueUA3, 4, NULL);
+				WCHAR msg[175];
+				swprintf_s(msg, L"%d, %d and %d were successfully changed to %d, %d and %d", oldValueUA1, oldValueUA2, oldValueUA3, valueAmmo1, valueAmmo1, valueAmmo2);
+
+				thread tUnlimitedAmmo(UnlimitedAmmo);
+				tUnlimitedAmmo.detach();
+
+				int success1 = WriteProcessMemory(hProcHck, (LPVOID)pointerUA1, &valueAmmo1, (DWORD)sizeof(valueAmmo1), NULL);
+				int success2 = WriteProcessMemory(hProcHck, (LPVOID)pointerUA2, &valueAmmo1, (DWORD)sizeof(valueAmmo1), NULL);
+				int success3 = WriteProcessMemory(hProcHck, (LPVOID)pointerUA3, &valueAmmo2, (DWORD)sizeof(valueAmmo2), NULL);
+				// Following lines used for error testing:
+				// int success1 = WriteProcessMemory(hWndBO2, (LPVOID)pointerUA1, &valueAmmo1, (DWORD)sizeof(valueAmmo1), NULL);
+				// int success2 = WriteProcessMemory(hWndBO2, (LPVOID)pointerUA2, &valueAmmo1, (DWORD)sizeof(valueAmmo1), NULL);
+				// int success3 = WriteProcessMemory(hWndBO2, (LPVOID)pointerUA3, &valueAmmo2, (DWORD)sizeof(valueAmmo2), NULL);
+				if (success1 > 0 && success2 > 0 && success3 > 0) {
+					clickUA = true;
+					InvalidateRect(hWnd, &rectUA, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
+				}
+				else {
+					clickUA = false;
+					InvalidateRect(hWnd, &rectUA, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("Unlimited Ammo hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
+				}
+
+				CloseHandle(hProcHck);
+			}
+			else {
+				WCHAR msg[175];
+				swprintf_s(msg, L"%d, %d and %d were successfully changed back to %d, %d and %d", valueAmmo1, valueAmmo1, valueAmmo2, oldValueUA1, oldValueUA2, oldValueUA3);
+
+				int success1 = WriteProcessMemory(hProcHck, (LPVOID)pointerUA1, &oldValueUA1, (DWORD)sizeof(oldValueUA1), NULL);
+				int success2 = WriteProcessMemory(hProcHck, (LPVOID)pointerUA2, &oldValueUA2, (DWORD)sizeof(oldValueUA2), NULL);
+				int success3 = WriteProcessMemory(hProcHck, (LPVOID)pointerUA3, &oldValueUA3, (DWORD)sizeof(oldValueUA3), NULL);
+				// Following lines used for error testing:
+				// int success1 = WriteProcessMemory(hWndBO2, (LPVOID)pointerUA1, &oldValueUA1, (DWORD)sizeof(oldValueUA1), NULL);
+				// int success2 = WriteProcessMemory(hWndBO2, (LPVOID)pointerUA2, &oldValueUA2, (DWORD)sizeof(oldValueUA2), NULL);
+				// int success3 = WriteProcessMemory(hWndBO2, (LPVOID)pointerUA3, &oldValueUA3, (DWORD)sizeof(oldValueUA3), NULL);
+				if (success1 > 0 && success2 > 0 && success3 > 0) {
+					clickUA = false;
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
+				}
+				else {
+					clickUA = true;
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("Unlimited Ammo hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
+				}
+
+				CloseHandle(hProcHck);
+			}
 		}
+
+		// NO CLIP
 		if (downNC == true) {
 			downNC = false;
 			InvalidateRect(hWnd, &rectNC, FALSE);
+
+			if (clickNC == true) {
+				ReadProcessMemory(hProcHck, (LPCVOID)(pointerNC1), &oldValueNC1, 4, NULL);
+				ReadProcessMemory(hProcHck, (LPCVOID)(pointerNC2), &oldValueNC2, 4, NULL);
+				WCHAR msg[125];
+				swprintf_s(msg, L"%d and %d were successfully changed to %d and %d", oldValueNC1, oldValueNC2, valueAmmo1, valueAmmo1);
+
+				thread tNoClip(NoClip);
+				tNoClip.detach();
+
+				int success1 = WriteProcessMemory(hProcHck, (LPVOID)pointerNC1, &valueAmmo1, (DWORD)sizeof(valueAmmo1), NULL);
+				int success2 = WriteProcessMemory(hProcHck, (LPVOID)pointerNC2, &valueAmmo1, (DWORD)sizeof(valueAmmo1), NULL);
+				// Following lines used for error testing:
+				// int success1 = WriteProcessMemory(hWndBO2, (LPVOID)pointerNC1, &valueAmmo1, (DWORD)sizeof(valueAmmo1), NULL);
+				// int success2 = WriteProcessMemory(hWndBO2, (LPVOID)pointerNC2, &valueAmmo1, (DWORD)sizeof(valueAmmo1), NULL);
+				if (success1 > 0 && success2 > 0) {
+					clickNC = true;
+					InvalidateRect(hWnd, &rectNC, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
+				}
+				else {
+					clickNC = false;
+					InvalidateRect(hWnd, &rectNC, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("No Clip hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
+				}
+
+				CloseHandle(hProcHck);
+			}
+			else {
+				WCHAR msg[125];
+				swprintf_s(msg, L"%d and %d were successfully changed back to %d and %d", valueAmmo1, valueAmmo1, oldValueNC1, oldValueNC2);
+
+				int success1 = WriteProcessMemory(hProcHck, (LPVOID)pointerNC1, &oldValueNC1, (DWORD)sizeof(oldValueNC1), NULL);
+				int success2 = WriteProcessMemory(hProcHck, (LPVOID)pointerNC2, &oldValueNC2, (DWORD)sizeof(oldValueNC2), NULL);
+				// Following lines used for error testing:
+				// int success1 = WriteProcessMemory(hWndBO2, (LPVOID)pointerNC1, &oldValueNC1, (DWORD)sizeof(oldValueNC1), NULL);
+				// int success2 = WriteProcessMemory(hWndBO2, (LPVOID)pointerNC2, &oldValueNC2, (DWORD)sizeof(oldValueNC2), NULL);
+				if (success1 > 0 && success2 > 0) {
+					clickNC = false;
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
+				}
+				else {
+					clickNC = true;
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("No Clip hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
+				}
+
+				CloseHandle(hProcHck);
+			}
 		}
+
+		// RAPID FIRE
 		if (downRF == true) {
 			downRF = false;
 			InvalidateRect(hWnd, &rectRF, FALSE);
+
+			if (clickRF == true) {
+				ReadProcessMemory(hProcHck, (LPCVOID)(pointerRF), &oldValueRF, 4, NULL);
+				WCHAR msg[50];
+				swprintf_s(msg, L"%d was successfully changed to %d", oldValueRF, valueRapidFire);
+
+				thread tRapidFire(RapidFire);
+				tRapidFire.detach();
+
+				int success = WriteProcessMemory(hProcHck, (LPVOID)pointerRF, &valueRapidFire, (DWORD)sizeof(valueRapidFire), NULL);
+				// Following line used for error testing:
+				// int success = WriteProcessMemory(hWndBO2, (LPVOID)pointerRF, &valueRapidFire, (DWORD)sizeof(valueRapidFire), NULL);
+				if (success > 0) {
+					clickRF = true;
+					InvalidateRect(hWnd, &rectRF, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
+				}
+				else {
+					clickRF = false;
+					InvalidateRect(hWnd, &rectRF, FALSE);
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("Rapid Fire hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
+				}
+
+				CloseHandle(hProcHck);
+			}
+			else {
+				WCHAR msg[50];
+				swprintf_s(msg, L"%d was successfully changed back to %d", valuePoints, oldValueRF);
+
+				int success = WriteProcessMemory(hProcHck, (LPVOID)pointerRF, &oldValueRF, (DWORD)sizeof(oldValueRF), NULL);
+				// Following line used for error testing:
+				// int success = WriteProcessMemory(hWndBO2, (LPVOID)pointerRF, &oldValueRF, (DWORD)sizeof(oldValueRF), NULL);
+				if (success > 0) {
+					clickRF = false;
+					if (advanced == true) {
+						MessageBox(NULL,
+							msg,
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
+				}
+				else {
+					clickRF = true;
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("Rapid Fire hack failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
+				}
+
+				CloseHandle(hProcHck);
+			}
 		}
+
 		if (downDA == true) {
+			if (clickUH == true || clickUS == true || clickUA == true || clickNC == true || clickRF == true) {
+				int successUH = WriteProcessMemory(hProcHck, (LPVOID)pointerUH, &oldValueUH, (DWORD)sizeof(oldValueUH), NULL);
+				int successUS = WriteProcessMemory(hProcHck, (LPVOID)pointerUS, &oldValueUS, (DWORD)sizeof(oldValueUS), NULL);
+				int successUA1 = WriteProcessMemory(hProcHck, (LPVOID)pointerUA1, &oldValueUA1, (DWORD)sizeof(oldValueUA1), NULL);
+				int successUA2 = WriteProcessMemory(hProcHck, (LPVOID)pointerUA2, &oldValueUA2, (DWORD)sizeof(oldValueUA2), NULL);
+				int successUA3 = WriteProcessMemory(hProcHck, (LPVOID)pointerUA3, &oldValueUA3, (DWORD)sizeof(oldValueUA3), NULL);
+				int successNC1 = WriteProcessMemory(hProcHck, (LPVOID)pointerNC1, &oldValueNC1, (DWORD)sizeof(oldValueNC1), NULL);
+				int successNC2 = WriteProcessMemory(hProcHck, (LPVOID)pointerNC2, &oldValueNC2, (DWORD)sizeof(oldValueNC2), NULL);
+				int successRF = WriteProcessMemory(hProcHck, (LPVOID)pointerRF, &oldValueRF, (DWORD)sizeof(oldValueRF), NULL);
+
+				if (successUH > 0 && successUS > 0 && successUA1 > 0 && successUA1 > 0 && successUA3 > 0 && successNC1 > 0 && successNC2 > 0 && successRF > 0) {
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("All values were successfully changed back to their previous values!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONINFORMATION);
+					}
+				}
+				else {
+					if (advanced == true) {
+						MessageBox(NULL,
+							_T("Disable All failed!"),
+							_T("Call of Duty Black Ops II Trainer"),
+							MB_OK + MB_ICONERROR);
+					}
+				}
+
+				CloseHandle(hProcHck);
+			}
+			else {
+				if (advanced == true) {
+					MessageBox(NULL,
+						_T("No hacks are enabled!"),
+						_T("Call of Duty Black Ops II Trainer"),
+						MB_OK + MB_ICONERROR);
+				}
+			}
+
 			downDA = false;
 			InvalidateRect(hWnd, &rectDA, FALSE);
 		}
@@ -1217,6 +1654,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		if (iPosX > 472 && iPosX < 723 && iPosY > 517 && iPosY < 632) {
 			SetCursor(wcex.hCursor);
 		}
+
 		if (clickDA == true) {
 			if (clickUH == true) {
 				clickUH = false;
@@ -1253,6 +1691,7 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		int iPosX = GET_X_LPARAM(lParam);
 		int iPosY = GET_Y_LPARAM(lParam);
 
+		RECT rectSe{ 124, 27, 152, 62 };
 		RECT rectMn{ 669, 27, 697, 62 };
 		RECT rectCl{ 697, 27, 725, 62 };
 		RECT rectUH{ 130, 200, 375, 330 };
@@ -1272,6 +1711,30 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 				int width = rcWindow.right - rcWindow.left;
 				int height = rcWindow.bottom - rcWindow.top;
 				MoveWindow(hWnd, x, y, width, height, FALSE);
+			}
+		}
+
+		// Settings button: hover
+		if (iPosX > 124 && iPosX < 151 && iPosY > 27 && iPosY < 61) {
+			hoverSe = true;
+			SetCursor(wcex.hCursor);
+		}
+		else {
+			hoverSe = false;
+		}
+		static bool initializedSe;
+		if (hoverSe == true) {
+			if (!initializedSe) {
+				initializedSe = true;
+				InvalidateRect(hWnd, &rectSe, FALSE);
+				//RedrawWindow(hWnd, &rectSe, NULL, RDW_INVALIDATE);
+			}
+		}
+		else {
+			if (initializedSe) {
+				initializedSe = false;
+				InvalidateRect(hWnd, &rectSe, FALSE);
+				//RedrawWindow(hWnd, &rectSe, NULL, RDW_INVALIDATE);
 			}
 		}
 
@@ -1462,41 +1925,118 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 	{
 		hdc = BeginPaint(hWnd, &ps);
 
+		HWND hCheck = FindWindow(0, L"REDACTED: Nightly [2014-06-25] - #OFFLINE MODE#");
+		if (hCheck == 0) {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				ShowWindow(hWnd, SW_HIDE);
+				MessageBox(NULL,
+					_T("Call of Duty Black Ops II process could not be found!"),
+					_T("Call of Duty Black Ops II Trainer"),
+					NULL);
+				DestroyWindow(hWnd);
+			}
+		}
+		else {
+			static bool initialized;
+			if (!initialized) {
+				initialized = true;
+				GetWindowThreadProcessId(hWndBO2, &procId);
+				hProcHck = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId);
+				if (!hProcHck) {
+					ShowWindow(hWnd, SW_HIDE);
+					MessageBox(NULL,
+						_T("Failed to open process, run the trainer as administrator!"),
+						_T("Call of Duty Black Ops II Trainer"),
+						NULL);
+					DestroyWindow(hWnd);
+				}
+			}
+		}
+
 		if (status() == false) {
 			static bool initialized;
 			if (!initialized) {
 				initialized = true;
+				ShowWindow(hWnd, SW_HIDE);
 				MessageBox(NULL,
-					_T("Failed to find process!"),
+					_T("Call of Duty Black Ops II was shut down!"),
 					_T("Call of Duty Black Ops II Trainer"),
 					NULL);
-
 				DestroyWindow(hWnd);
 			}
 		}
 
-		if (hWndBO2 == 0) {
-			MessageBox(NULL,
-				_T("Failed to find process!"),
-				_T("Call of Duty Black Ops II Trainer"),
-				NULL);
-
-			return 1;
-		}
-		else {
-			GetWindowThreadProcessId(hWndBO2, &procId);
-			hProcHck = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId);
-			if (!hProcHck) {
-				MessageBox(NULL,
-					_T("Failed to open process!"),
-					_T("Call of Duty Black Ops II Trainer"),
-					NULL);
-
-				return 1;
-			}
-		}
-
 		onPaintMain(hdc);
+
+		EndPaint(hWnd, &ps);
+		break;
+	}
+
+	case WM_DESTROY:
+	{
+		PostQuitMessage(0);
+		break;
+	}
+
+	default:
+	{
+		return DefWindowProc(hWnd, message, wParam, lParam);
+		break;
+	}
+
+	}
+
+	return 0;
+}
+
+/*---------------------------------------------------------------------------------------------*/
+// Callback function to process input on settings window
+
+LRESULT CALLBACK WndProcSettings(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	PAINTSTRUCT ps;
+	HDC hdc;
+
+	WNDCLASSEX wcex;
+	wcex.hCursor = LoadCursor(NULL, IDC_HAND);
+
+	switch (message)
+	{
+	// WM_LBUTTONDOWN
+	case WM_LBUTTONDOWN:
+	{
+		int iPosX = GET_X_LPARAM(lParam);
+		int iPosY = GET_Y_LPARAM(lParam);
+
+		break;
+	}
+
+	// WM_LBUTTONUP
+	case WM_LBUTTONUP:
+	{
+		int iPosX = GET_X_LPARAM(lParam);
+		int iPosY = GET_Y_LPARAM(lParam);
+
+		break;
+	}
+
+	// WM_MOUSEMOVE
+	case WM_MOUSEMOVE:
+	{
+		int iPosX = GET_X_LPARAM(lParam);
+		int iPosY = GET_Y_LPARAM(lParam);
+
+		break;
+	}
+
+	// WM_PAINT
+	case WM_PAINT:
+	{
+		hdc = BeginPaint(hWnd, &ps);
+
+		onPaintSettings(hdc);
 
 		EndPaint(hWnd, &ps);
 		break;

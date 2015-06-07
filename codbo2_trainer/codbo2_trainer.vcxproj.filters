@@ -15,50 +15,59 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FindProcess.cpp">
+    <ClCompile Include="Source Files\FindProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Main.cpp">
+    <ClCompile Include="Source Files\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source Files\WriteProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FindProcess.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Res.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Intro_border.png">
+    <Image Include="Resource Files\Icon.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Intro_original.png">
+    <Image Include="Resource Files\Intro_border.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Intro_regular.png">
+    <Image Include="Resource Files\Intro_original.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Logo.jpg">
+    <Image Include="Resource Files\Intro_regular.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Main_border.png">
+    <Image Include="Resource Files\Logo.jpg">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Main_border_linegrey.png">
+    <Image Include="Resource Files\Main_grey.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Main_border_lineorange.png">
+    <Image Include="Resource Files\Main_orange.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Icon.ico">
+    <Image Include="Resource Files\Settings_icon.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resource Files\Settings_orange.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Res.rc">
+    <ResourceCompile Include="Resource Files\Res.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header Files\FindProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header Files\Res.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header Files\WriteProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
