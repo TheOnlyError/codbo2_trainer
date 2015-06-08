@@ -38,15 +38,15 @@ bool status()
 		if (!initialized) {
 			initialized = true;
 			InvalidateRect(hWndIntro, &rect, FALSE);
-			return true;
 		}
+		return true;
 	}
 	else {
 		if (initialized) {
 			initialized = false;
 			InvalidateRect(hWndIntro, &rect, FALSE);
-			return false;
 		}
+		return false;
 	}
 }
 
